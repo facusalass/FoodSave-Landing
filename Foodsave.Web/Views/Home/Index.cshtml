@@ -1,8 +1,112 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero-section py-5">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <p class="section-label mb-2">Ofertas del d&iacute;a y Mystery Boxes</p>
+            <h1 class="display-5 fw-semibold mb-3">Reserv&aacute; comida de comercios locales antes de que se desperdicie.</h1>
+            <p class="lead mb-4">
+                FoodSave conecta comercios que tienen excedentes de comida con usuarios que quieren reservar ofertas del d&iacute;a o Mystery Boxes a un precio m&aacute;s accesible.
+            </p>
+            <a class="btn btn-primary btn-lg" asp-controller="Comercios" asp-action="Index">Ver comercios</a>
+        </div>
+        <div class="col-lg-5">
+            <div class="hero-card">
+                <h2 class="h5 mb-3">Una idea simple</h2>
+                <p class="mb-0">
+                    El usuario reserva, coordina el pago por transferencia o WhatsApp y retira el pedido en el local.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-4">
+    <h2 class="h3 mb-4">C&oacute;mo funciona</h2>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="step-card h-100">
+                <span class="step-number">1</span>
+                <h3 class="h6">El comercio publica</h3>
+                <p>Sube una oferta del d&iacute;a o una Mystery Box con comida disponible.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step-card h-100">
+                <span class="step-number">2</span>
+                <h3 class="h6">El usuario reserva</h3>
+                <p>Elige una opci&oacute;n y deja guardado el pedido para retirarlo.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step-card h-100">
+                <span class="step-number">3</span>
+                <h3 class="h6">Avisa por WhatsApp</h3>
+                <p>Coordina el pago o confirma la transferencia con el comercio.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="step-card h-100">
+                <span class="step-number">4</span>
+                <h3 class="h6">Retira en el local</h3>
+                <p>Pasa por el comercio y se lleva el pedido reservado.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-4">
+    <h2 class="h3 mb-4">Beneficios</h2>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <h3 class="h5">Menos desperdicio</h3>
+                <p>Se aprovecha comida que todav&iacute;a est&aacute; en buen estado.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <h3 class="h5">M&aacute;s ventas</h3>
+                <p>Los comercios pueden vender excedentes en vez de descartarlos.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <h3 class="h5">Mejores precios</h3>
+                <p>Los usuarios encuentran opciones m&aacute;s accesibles para comprar comida.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-4">
+    <h2 class="h3 mb-4">Planes</h2>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="plan-card h-100">
+                <h3 class="h4">Est&aacute;ndar</h3>
+                <p class="plan-price">Gratis</p>
+                <p>Para comercios que quieren publicar ofertas de forma simple.</p>
+                <ul>
+                    <li>Publicaci&oacute;n de ofertas del d&iacute;a</li>
+                    <li>Datos del comercio</li>
+                    <li>Contacto por WhatsApp</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="plan-card h-100 plan-card-featured">
+                <h3 class="h4">Pro</h3>
+                <p class="plan-price">Con funciones extra</p>
+                <p>Para comercios que necesitan ordenar mejor sus publicaciones.</p>
+                <ul>
+                    <li>M&aacute;s ofertas activas</li>
+                    <li>Espacio para Mystery Boxes</li>
+                    <li>Resumen b&aacute;sico de reservas</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>

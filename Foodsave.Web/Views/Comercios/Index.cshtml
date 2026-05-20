@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Comercios";
+}
+
+<section class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-2">Comercios</h1>
+            <p class="lead mb-0">
+                Vista preparada para listar comercios que publican ofertas del d&iacute;a o Mystery Boxes.
+            </p>
+        </div>
+        <a class="btn btn-primary align-self-md-start" asp-controller="Home" asp-action="Index">Volver al inicio</a>
+    </div>
+
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Comercio</th>
+                        <th>Tipo de oferta</th>
+                        <th>Estado</th>
+                        <th>Contacto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            Todav&iacute;a no hay comercios cargados. La tabla queda lista para recibir datos desde el modelo.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-6">
+            <div class="info-card h-100">
+                <h2 class="h5">Ofertas del d&iacute;a</h2>
+                <p class="mb-0">Pensadas para productos disponibles por poco tiempo.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-card h-100">
+                <h2 class="h5">Mystery Boxes</h2>
+                <p class="mb-0">Cajas con productos sorpresa que el comercio prepara con excedentes.</p>
+            </div>
+        </div>
+    </div>
+</section>
