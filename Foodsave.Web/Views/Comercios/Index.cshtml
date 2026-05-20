@@ -1,3 +1,5 @@
+@model List<Foodsave.Web.Models.Comercio>
+
 @{
     ViewData["Title"] = "Comercios";
 }
@@ -7,7 +9,7 @@
         <div>
             <h1 class="h2 mb-2">Comercios</h1>
             <p class="lead mb-0">
-                Vista preparada para listar comercios que publican ofertas del d&iacute;a o Mystery Boxes.
+                Comercios que publican ofertas del d&iacute;a o Mystery Boxes.
             </p>
         </div>
         <a class="btn btn-primary align-self-md-start" asp-controller="Home" asp-action="Index">Volver al inicio</a>
@@ -19,34 +21,38 @@
                 <thead>
                     <tr>
                         <th>Comercio</th>
-                        <th>Tipo de oferta</th>
-                        <th>Estado</th>
+                        <th>Rubro</th>
+                        <th>Direcci&oacute;n</th>
                         <th>Contacto</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td colspan="4" class="text-center text-muted py-4">
-                            Todav&iacute;a no hay comercios cargados. La tabla queda lista para recibir datos desde el modelo.
-                        </td>
-                    </tr>
+                    @if (Model.Any())
+                    {
+                        foreach (var comercio in Model)
+                        {
+                            <tr>
+                                <td>@comercio.Nombre</td>
+                                <td>@comercio.Rubro</td>
+                                <td>@comercio.Direccion</td>
+                                <td>@comercio.Telefono</td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary" asp-controller="Comercios" asp-action="Details" asp-route-id="@comercio.Id">Ver detalle</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Todav&iacute;a no hay comercios cargados.
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
-        </div>
-    </div>
-
-    <div class="row g-3 mt-2">
-        <div class="col-md-6">
-            <div class="info-card h-100">
-                <h2 class="h5">Ofertas del d&iacute;a</h2>
-                <p class="mb-0">Pensadas para productos disponibles por poco tiempo.</p>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="info-card h-100">
-                <h2 class="h5">Mystery Boxes</h2>
-                <p class="mb-0">Cajas con productos sorpresa que el comercio prepara con excedentes.</p>
-            </div>
         </div>
     </div>
 </section>
