@@ -1,0 +1,85 @@
+﻿@model Foodsave.Web.Models.Comercio
+
+@{
+    ViewData["Title"] = "Inscribir comercio";
+}
+
+<section class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-2">Inscribir comercio</h1>
+            <p class="lead mb-0">Complet&aacute; los datos principales para agregar un comercio a FoodSave.</p>
+        </div>
+        <a class="btn btn-outline-primary align-self-md-start" asp-controller="Comercios" asp-action="Index">Volver</a>
+    </div>
+
+    <form asp-action="Create" method="post" class="admin-card">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <h2 class="h5 mb-3">Datos del comercio</h2>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label asp-for="Nombre" class="form-label">Nombre del comercio</label>
+                <input asp-for="Nombre" class="form-control" />
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Rubro" class="form-label">Rubro</label>
+                <input asp-for="Rubro" class="form-control" />
+                <span asp-validation-for="Rubro" class="text-danger"></span>
+            </div>
+            <div class="col-md-8">
+                <label asp-for="Direccion" class="form-label">Direcci&oacute;n</label>
+                <input asp-for="Direccion" class="form-control" />
+                <span asp-validation-for="Direccion" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Telefono" class="form-label">Tel&eacute;fono</label>
+                <input asp-for="Telefono" class="form-control" />
+                <span asp-validation-for="Telefono" class="text-danger"></span>
+            </div>
+        </div>
+
+        <h2 class="h5 mb-3">Datos del titular</h2>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label asp-for="Titular.Nombre" class="form-label">Nombre del titular</label>
+                <input asp-for="Titular.Nombre" class="form-control" />
+                <span asp-validation-for="Titular.Nombre" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Titular.Apellido" class="form-label">Apellido del titular</label>
+                <input asp-for="Titular.Apellido" class="form-control" />
+                <span asp-validation-for="Titular.Apellido" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Titular.Telefono" class="form-label">Tel&eacute;fono del titular</label>
+                <input asp-for="Titular.Telefono" class="form-control" />
+                <span asp-validation-for="Titular.Telefono" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Titular.Email" class="form-label">Email del titular</label>
+                <input asp-for="Titular.Email" class="form-control" />
+                <span asp-validation-for="Titular.Email" class="text-danger"></span>
+            </div>
+        </div>
+
+        <h2 class="h5 mb-3">Plan inicial</h2>
+        <div class="mb-4">
+            <label for="planInicial" class="form-label">Plan</label>
+            <select id="planInicial" name="planInicial" class="form-select">
+                <option value="Estandar">Est&aacute;ndar</option>
+                <option value="Pro">Pro</option>
+            </select>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Guardar comercio</button>
+            <a class="btn btn-outline-secondary" asp-controller="Comercios" asp-action="Index">Cancelar</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

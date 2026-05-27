@@ -1,16 +1,14 @@
-using Foodsave.Web.Data;
+ï»¿using Foodsave.Web.Data;
+using Foodsave.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; 
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace Foodsave.Web.Controllers
 {
     public class ComerciosController : Controller
     {
-        // 1. Variable privada para guardar la sesión de la base de datos
         private readonly ApplicationDbContext _context;
 
-        // 2. El Constructor: C# nos inyecta la base de datos automáticamente acá
         public ComerciosController(ApplicationDbContext context)
         {
             _context = context;
@@ -18,8 +16,6 @@ namespace Foodsave.Web.Controllers
 
         public IActionResult Index()
         {
-            // 3. Vamos a la tabla real de Comercios.
-            // Usamos Include para traer también la info del Titular y sus Suscripciones.
             var comercios = _context.Comercios
                 .Include(c => c.Titular)
                 .Include(c => c.Suscripciones)
@@ -30,7 +26,6 @@ namespace Foodsave.Web.Controllers
 
         public IActionResult Details(int id)
         {
-            // 4. Buscamos en la base de datos el comercio específico con sus relaciones.
             var comercio = _context.Comercios
                 .Include(c => c.Titular)
                 .Include(c => c.Suscripciones)
@@ -42,6 +37,39 @@ namespace Foodsave.Web.Controllers
             }
 
             return View(comercio);
+        }
+
+        public IActionResult Create()
+        {
+            return View(new Comercio());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Comercio comercio, string planInicial)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(comercio);
+            }
+
+            var plan = string.IsNullOrWhiteSpace(planInicial) ? "Estandar" : planInicial;
+
+            comercio.Suscripciones = new List<Suscripcion>
+            {
+                new Suscripcion
+                {
+                    Plan = plan,
+                    Estado = "Activa",
+                    FechaInicio = DateTime.Today,
+                    FechaFin = DateTime.Today.AddMonths(1)
+                }
+            };
+
+            _context.Comercios.Add(comercio);
+            _context.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

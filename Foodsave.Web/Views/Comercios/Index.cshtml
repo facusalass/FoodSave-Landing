@@ -1,4 +1,4 @@
-@model List<Foodsave.Web.Models.Comercio>
+﻿@model List<Foodsave.Web.Models.Comercio>
 
 @{
     ViewData["Title"] = "Comercios";
@@ -12,7 +12,10 @@
                 Comercios que publican ofertas del d&iacute;a o Mystery Boxes.
             </p>
         </div>
-        <a class="btn btn-primary align-self-md-start" asp-controller="Home" asp-action="Index">Volver al inicio</a>
+        <div class="d-flex gap-2 align-self-md-start">
+            <a class="btn btn-primary" asp-controller="Comercios" asp-action="Create">Inscribir comercio</a>
+            <a class="btn btn-outline-primary" asp-controller="Home" asp-action="Index">Volver al inicio</a>
+        </div>
     </div>
 
     <div class="admin-card">
