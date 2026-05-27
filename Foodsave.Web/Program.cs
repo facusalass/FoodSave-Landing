@@ -16,13 +16,11 @@ namespace Foodsave.Web
 
             var app = builder.Build();
 
-         
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                context.Database.Migrate(); // Esto ejecuta el 'database update' por código
+                DbInitializer.Initialize(context);
             }
-            // ------------------------------
 
             if (!app.Environment.IsDevelopment())
             {
