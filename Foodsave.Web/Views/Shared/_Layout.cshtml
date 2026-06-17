@@ -21,13 +21,30 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
-                    <ul class="navbar-nav gap-sm-2">
+                    <ul class="navbar-nav align-items-sm-center gap-sm-2">
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Comercios" asp-action="Index">Comercios</a>
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Comercios" asp-action="Index">Comercios</a>
+                            </li>
+                            <li class="nav-item">
+                                <span class="nav-link navbar-user">@User.Identity.Name</span>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Auth" asp-action="Logout" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Cerrar sesión</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-sm btn-primary" asp-controller="Auth" asp-action="Login">Ingresar</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

@@ -1,10 +1,12 @@
 ﻿using Foodsave.Web.Data;
 using Foodsave.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Foodsave.Web.Controllers
 {
+    [Authorize]
     public class ComerciosController : Controller
     {
         private readonly ApplicationDbContext _context;

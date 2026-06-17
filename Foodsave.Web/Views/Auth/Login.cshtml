@@ -1,0 +1,54 @@
+@model Foodsave.Web.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Ingresar";
+}
+
+<section class="login-section py-5">
+    <div class="login-card">
+        <div class="mb-4">
+            <p class="section-label mb-2">Panel de administración</p>
+            <h1 class="h2 mb-2">Ingresar a FoodSave</h1>
+            <p class="text-muted mb-0">
+                Accedé con tu cuenta para administrar los comercios.
+            </p>
+        </div>
+
+        <form asp-action="Login" method="post" novalidate>
+            <input asp-for="ReturnUrl" type="hidden" />
+
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger"
+                 role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email"
+                       class="form-control"
+                       autocomplete="username"
+                       placeholder="comercio@foodsave.com" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password"
+                       class="form-control"
+                       autocomplete="current-password"
+                       placeholder="Ingresá tu contraseña" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </form>
+
+        <div class="demo-credentials mt-4">
+            <strong>Credenciales de prueba</strong>
+            <span>comercio@foodsave.com / 123456</span>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

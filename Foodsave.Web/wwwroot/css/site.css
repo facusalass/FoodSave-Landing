@@ -58,6 +58,11 @@ body {
   color: var(--foodsave-orange);
 }
 
+.navbar-user {
+  color: #66736b !important;
+  font-size: 0.9rem;
+}
+
 .page-content {
   padding-top: 24px;
 }
@@ -129,6 +134,39 @@ body {
   font-weight: 700;
 }
 
+.login-section {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: calc(100vh - 190px);
+}
+
+.login-card {
+  background-color: #ffffff;
+  border: 1px solid var(--foodsave-border);
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(31, 61, 43, 0.08);
+  max-width: 460px;
+  padding: 32px;
+  width: 100%;
+}
+
+.demo-credentials {
+  background-color: var(--foodsave-light);
+  border: 1px solid var(--foodsave-border);
+  border-radius: 8px;
+  color: #4f5f55;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  gap: 4px;
+  padding: 14px;
+}
+
+.validation-summary-valid {
+  display: none;
+}
+
 .btn-primary {
   background-color: var(--foodsave-orange);
   border-color: var(--foodsave-orange);
@@ -163,7 +201,8 @@ body {
   .info-card,
   .plan-card,
   .step-card,
-  .admin-card {
+  .admin-card,
+  .login-card {
     padding: 18px;
   }
 }
