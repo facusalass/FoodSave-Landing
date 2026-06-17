@@ -1,0 +1,11 @@
+.git
+.gitignore
+.vs
+**/bin
+**/obj
+**/*.db
+**/.env
+**/.env.*
+!.env.example
+**/*.user
+**/*.log

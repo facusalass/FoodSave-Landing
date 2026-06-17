@@ -15,5 +15,16 @@ namespace Foodsave.Web.Data
         public DbSet<Comercio> Comercios { get; set; }
         public DbSet<Titular> Titulares { get; set; }
         public DbSet<Suscripcion> Suscripciones { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Suscripcion>(entity =>
+            {
+                entity.Property(s => s.FechaInicio)
+                    .HasColumnType("timestamp without time zone");
+                entity.Property(s => s.FechaFin)
+                    .HasColumnType("timestamp without time zone");
+            });
+        }
     }
 }

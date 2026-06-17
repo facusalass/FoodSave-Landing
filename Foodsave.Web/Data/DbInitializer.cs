@@ -9,11 +9,6 @@ namespace Foodsave.Web.Data
         {
             context.Database.Migrate();
 
-            if (context.Comercios.Any())
-            {
-                return;
-            }
-
             var comercios = new List<Comercio>
             {
                 new Comercio
@@ -113,7 +108,19 @@ namespace Foodsave.Web.Data
                 }
             };
 
-            context.Comercios.AddRange(comercios);
+            var nombresExistentes = context.Comercios
+                .Select(comercio => comercio.Nombre)
+                .ToHashSet();
+            var comerciosFaltantes = comercios
+                .Where(comercio => !nombresExistentes.Contains(comercio.Nombre))
+                .ToList();
+
+            if (comerciosFaltantes.Count == 0)
+            {
+                return;
+            }
+
+            context.Comercios.AddRange(comerciosFaltantes);
             context.SaveChanges();
         }
     }

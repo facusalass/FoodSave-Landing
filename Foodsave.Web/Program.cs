@@ -1,5 +1,6 @@
 using Foodsave.Web.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
 namespace Foodsave.Web
@@ -9,6 +10,12 @@ namespace Foodsave.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var railwayPort = Environment.GetEnvironmentVariable("PORT");
+            if (!string.IsNullOrWhiteSpace(railwayPort))
+            {
+                builder.WebHost.UseUrls($"http://0.0.0.0:{railwayPort}");
+            }
 
             builder.Services.AddControllersWithViews();
 
@@ -23,8 +30,22 @@ namespace Foodsave.Web
                     options.SlidingExpiration = true;
                 });
 
+            var connectionString =
+                DatabaseConnectionStringResolver.Resolve(builder.Configuration);
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(
+                    connectionString,
+                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()));
+
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto;
+                options.KnownIPNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
 
             var app = builder.Build();
 
@@ -33,6 +54,8 @@ namespace Foodsave.Web
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 DbInitializer.Initialize(context);
             }
+
+            app.UseForwardedHeaders();
 
             if (!app.Environment.IsDevelopment())
             {
