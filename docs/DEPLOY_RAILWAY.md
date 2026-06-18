@@ -1,5 +1,10 @@
 # Deploy de FoodSave en Railway
 
+> **Documentación histórica:** Railway ya no es el proveedor objetivo de este
+> proyecto. Para el despliegue actual, consultar
+> [`DEPLOY_RENDER.md`](DEPLOY_RENDER.md). Esta guía se conserva como referencia
+> del trabajo anterior.
+
 ## Requisitos
 
 - .NET 10 para ejecución local.
@@ -81,9 +86,10 @@ No configurar ambas salvo que se quiera que
 
 ## Migraciones
 
-La migración activa es `InitialPostgreSql`. Las migraciones SQLite anteriores
-fueron retiradas porque contenían tipos y anotaciones incompatibles; continúan
-disponibles en el historial Git.
+Las migraciones PostgreSQL activas son `InitialPostgreSql` y
+`AddSolicitudesComercio`. Las migraciones SQLite anteriores fueron retiradas
+porque contenían tipos y anotaciones incompatibles; continúan disponibles en el
+historial Git.
 
 Para crear una migración futura:
 

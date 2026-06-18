@@ -11,10 +11,10 @@ namespace Foodsave.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            var railwayPort = Environment.GetEnvironmentVariable("PORT");
-            if (!string.IsNullOrWhiteSpace(railwayPort))
+            var port = Environment.GetEnvironmentVariable("PORT");
+            if (!string.IsNullOrWhiteSpace(port))
             {
-                builder.WebHost.UseUrls($"http://0.0.0.0:{railwayPort}");
+                builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
             }
 
             builder.Services.AddControllersWithViews();

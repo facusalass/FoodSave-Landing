@@ -41,7 +41,9 @@ No existe fallback a SQLite ni se versionan credenciales reales.
 - Aplicaciones Expo o React Native.
 - Migración de datos históricos desde el antiguo archivo SQLite.
 
-Para desarrollo y despliegue, consultar `docs/DEPLOY_RAILWAY.md`.
+El proveedor objetivo de despliegue es Render. Para desarrollo y despliegue,
+consultar `docs/DEPLOY_RENDER.md`. La guía de Railway se conserva únicamente
+como referencia histórica y ya no describe el destino actual.
 
 ## Solicitudes públicas de comercios
 
