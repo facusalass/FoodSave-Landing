@@ -108,6 +108,29 @@ namespace Foodsave.Web.Data
                 }
             };
 
+            foreach (var comercio in comercios)
+            {
+                comercio.EstadoAdministrativo = Comercio.EstadoActivo;
+
+                foreach (var suscripcion in comercio.Suscripciones)
+                {
+                    suscripcion.MontoMensual = 0;
+                    suscripcion.FechaProximoVencimiento = suscripcion.FechaFin;
+                    suscripcion.FechaUltimoPago =
+                        suscripcion.Estado == Suscripcion.EstadoActiva
+                            ? suscripcion.FechaInicio
+                            : null;
+                    suscripcion.EstadoPago = suscripcion.Estado switch
+                    {
+                        Suscripcion.EstadoActiva =>
+                            Suscripcion.EstadoPagoAlDia,
+                        Suscripcion.EstadoVencida =>
+                            Suscripcion.EstadoPagoVencido,
+                        _ => Suscripcion.EstadoPagoPendiente
+                    };
+                }
+            }
+
             var nombresExistentes = context.Comercios
                 .Select(comercio => comercio.Nombre)
                 .ToHashSet();

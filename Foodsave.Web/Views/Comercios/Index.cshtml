@@ -1,4 +1,4 @@
-﻿@model List<Foodsave.Web.Models.Comercio>
+@model List<Foodsave.Web.Models.ComercioAdministracionViewModel>
 
 @{
     ViewData["Title"] = "Comercios";
@@ -9,14 +9,27 @@
         <div>
             <h1 class="h2 mb-2">Comercios</h1>
             <p class="lead mb-0">
-                Comercios que publican ofertas del d&iacute;a o Mystery Boxes.
+                Administrá comercios, suscripciones y estados de pago.
             </p>
         </div>
-        <div class="d-flex gap-2 align-self-md-start">
-            <a class="btn btn-primary" asp-controller="Comercios" asp-action="Create">Inscribir comercio</a>
-            <a class="btn btn-outline-primary" asp-controller="Home" asp-action="Index">Volver al inicio</a>
+        <div class="d-flex flex-wrap gap-2 align-self-md-start">
+            <a class="btn btn-primary"
+               asp-controller="Comercios"
+               asp-action="Create">
+                Inscribir comercio
+            </a>
+            <a class="btn btn-outline-primary"
+               asp-controller="Estadisticas"
+               asp-action="Index">
+                Ver estadísticas
+            </a>
         </div>
     </div>
+
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success">@success</div>
+    }
 
     <div class="admin-card">
         <div class="table-responsive">
@@ -24,8 +37,10 @@
                 <thead>
                     <tr>
                         <th>Comercio</th>
-                        <th>Rubro</th>
-                        <th>Direcci&oacute;n</th>
+                        <th>Estado</th>
+                        <th>Plan</th>
+                        <th>Pago</th>
+                        <th>Próximo vencimiento</th>
                         <th>Contacto</th>
                         <th></th>
                     </tr>
@@ -33,15 +48,49 @@
                 <tbody>
                     @if (Model.Any())
                     {
-                        foreach (var comercio in Model)
+                        foreach (var item in Model)
                         {
+                            var comercioStatusClass =
+                                item.Comercio.EstadoAdministrativo switch
+                                {
+                                    Comercio.EstadoActivo => "status-accepted",
+                                    Comercio.EstadoInhabilitado => "status-rejected",
+                                    _ => "status-pending"
+                                };
+                            var pagoStatusClass = item.EstadoPagoEfectivo switch
+                            {
+                                Suscripcion.EstadoPagoAlDia => "status-accepted",
+                                Suscripcion.EstadoPagoVencido => "status-rejected",
+                                _ => "status-pending"
+                            };
+
                             <tr>
-                                <td>@comercio.Nombre</td>
-                                <td>@comercio.Rubro</td>
-                                <td>@comercio.Direccion</td>
-                                <td>@comercio.Telefono</td>
                                 <td>
-                                    <a class="btn btn-sm btn-outline-primary" asp-controller="Comercios" asp-action="Details" asp-route-id="@comercio.Id">Ver detalle</a>
+                                    <strong>@item.Comercio.Nombre</strong>
+                                    <div class="small text-muted">@item.Comercio.Rubro</div>
+                                </td>
+                                <td>
+                                    <span class="status-badge @comercioStatusClass">
+                                        @item.Comercio.EstadoAdministrativo
+                                    </span>
+                                </td>
+                                <td>@(item.SuscripcionActual?.Plan ?? "Sin plan")</td>
+                                <td>
+                                    <span class="status-badge @pagoStatusClass">
+                                        @item.EstadoPagoEfectivo
+                                    </span>
+                                </td>
+                                <td>
+                                    @(item.SuscripcionActual?.FechaProximoVencimiento
+                                        .ToString("dd/MM/yyyy") ?? "Sin fecha")
+                                </td>
+                                <td>@item.Comercio.Telefono</td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       asp-action="Details"
+                                       asp-route-id="@item.Comercio.Id">
+                                        Ver detalle
+                                    </a>
                                 </td>
                             </tr>
                         }
@@ -49,8 +98,8 @@
                     else
                     {
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                Todav&iacute;a no hay comercios cargados.
+                            <td colspan="7" class="text-center text-muted py-4">
+                                Todavía no hay comercios cargados.
                             </td>
                         </tr>
                     }

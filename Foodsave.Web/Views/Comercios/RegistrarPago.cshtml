@@ -1,0 +1,94 @@
+@model Foodsave.Web.Models.RegistrarPagoInputModel
+
+@{
+    ViewData["Title"] = "Registrar pago";
+}
+
+<section class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-2">Registrar pago</h1>
+            <p class="lead mb-0">
+                Cobro interno manual para @Model.ComercioNombre.
+            </p>
+        </div>
+        <a class="btn btn-outline-primary align-self-md-start"
+           asp-action="Details"
+           asp-route-id="@Model.ComercioId">
+            Volver al comercio
+        </a>
+    </div>
+
+    <form asp-action="RegistrarPago"
+          asp-route-id="@Model.ComercioId"
+          method="post"
+          class="admin-card">
+        <input asp-for="ComercioId" type="hidden" />
+        <input asp-for="SuscripcionId" type="hidden" />
+        <input asp-for="ComercioNombre" type="hidden" />
+        <input asp-for="Plan" type="hidden" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger"></div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label">Comercio</label>
+                <input value="@Model.ComercioNombre"
+                       class="form-control"
+                       disabled />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Plan</label>
+                <input value="@Model.Plan"
+                       class="form-control"
+                       disabled />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Monto" class="form-label">Monto cobrado (ARS)</label>
+                <input asp-for="Monto"
+                       type="number"
+                       min="0.01"
+                       step="0.01"
+                       class="form-control" />
+                <span asp-validation-for="Monto" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="FechaPago" class="form-label">Fecha del pago</label>
+                <input asp-for="FechaPago"
+                       type="date"
+                       class="form-control" />
+                <span asp-validation-for="FechaPago" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Observacion" class="form-label">
+                    Observación interna opcional
+                </label>
+                <textarea asp-for="Observacion"
+                          rows="3"
+                          maxlength="500"
+                          class="form-control"></textarea>
+                <span asp-validation-for="Observacion" class="text-danger"></span>
+            </div>
+        </div>
+
+        <p class="small text-muted">
+            Este registro no procesa dinero ni se conecta con proveedores de pago.
+        </p>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                Registrar cobro
+            </button>
+            <a class="btn btn-outline-secondary"
+               asp-action="Details"
+               asp-route-id="@Model.ComercioId">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

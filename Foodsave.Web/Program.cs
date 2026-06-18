@@ -1,4 +1,6 @@
 using Foodsave.Web.Data;
+using Foodsave.Web.Infrastructure;
+using Foodsave.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +19,13 @@ namespace Foodsave.Web
                 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
             }
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews(options =>
+            {
+                options.ModelBinderProviders.Insert(
+                    0,
+                    new InvariantDecimalModelBinderProvider());
+            });
+            builder.Services.AddScoped<GestionSuscripcionesService>();
 
             builder.Services
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -1,0 +1,99 @@
+@model Foodsave.Web.Models.EstadisticasViewModel
+
+@{
+    ViewData["Title"] = "Estadísticas";
+    var culture = System.Globalization.CultureInfo.GetCultureInfo("es-AR");
+}
+
+<section class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-2">Estadísticas internas</h1>
+            <p class="lead mb-0">
+                Suscripciones e ingresos propios de FoodSave.
+            </p>
+        </div>
+        <a class="btn btn-outline-primary align-self-md-start"
+           asp-controller="Comercios"
+           asp-action="Index">
+            Volver a comercios
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="info-card h-100">
+                <p class="text-muted mb-1">Total de comercios</p>
+                <p class="display-6 fw-semibold mb-0">@Model.TotalComercios</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="info-card h-100">
+                <p class="text-muted mb-1">Activos</p>
+                <p class="display-6 fw-semibold mb-0">@Model.ComerciosActivos</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="info-card h-100">
+                <p class="text-muted mb-1">Inhabilitados</p>
+                <p class="display-6 fw-semibold mb-0">@Model.ComerciosInhabilitados</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="info-card h-100">
+                <p class="text-muted mb-1">Pendientes de pago</p>
+                <p class="display-6 fw-semibold mb-0">@Model.ComerciosPendientesPago</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="info-card h-100">
+                <p class="text-muted mb-1">Comercios al día</p>
+                <p class="display-6 fw-semibold mb-0">@Model.ComerciosAlDia</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="info-card h-100">
+                <p class="text-muted mb-1">Comercios vencidos</p>
+                <p class="display-6 fw-semibold mb-0">@Model.ComerciosVencidos</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="info-card h-100">
+                <p class="text-muted mb-1">Solicitudes pendientes</p>
+                <p class="display-6 fw-semibold mb-0">@Model.SolicitudesPendientes</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="info-card h-100">
+                <p class="text-muted mb-1">Pagos registrados</p>
+                <p class="display-6 fw-semibold mb-0">@Model.CantidadPagosRegistrados</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="admin-card h-100">
+                <h2 class="h5">Ingresos estimados del mes</h2>
+                <p class="display-6 fw-semibold mb-2">
+                    @Model.IngresosEstimadosMes.ToString("C", culture)
+                </p>
+                <p class="text-muted mb-0">
+                    Suma de montos mensuales configurados en suscripciones
+                    vigentes, excluyendo comercios inhabilitados.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card h-100">
+                <h2 class="h5">Ingresos registrados totales</h2>
+                <p class="display-6 fw-semibold mb-2">
+                    @Model.IngresosRegistradosTotales.ToString("C", culture)
+                </p>
+                <p class="text-muted mb-0">
+                    Suma exclusiva de cobros manuales registrados.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
