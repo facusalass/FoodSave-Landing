@@ -28,6 +28,13 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
+                                <a class="nav-link"
+                                   asp-controller="SolicitudesComercio"
+                                   asp-action="Index">
+                                    Solicitudes
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Comercios" asp-action="Index">Comercios</a>
                             </li>
                             <li class="nav-item">
@@ -41,6 +48,13 @@
                         }
                         else
                         {
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                   asp-controller="SolicitudesComercio"
+                                   asp-action="Create">
+                                    Sumar mi comercio
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="btn btn-sm btn-primary" asp-controller="Auth" asp-action="Login">Ingresar</a>
                             </li>

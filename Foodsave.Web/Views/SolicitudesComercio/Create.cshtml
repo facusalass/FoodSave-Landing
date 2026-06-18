@@ -1,0 +1,115 @@
+@model Foodsave.Web.Models.SolicitudComercioInputModel
+
+@{
+    ViewData["Title"] = "Sumar mi comercio";
+}
+
+<section class="py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="mb-4">
+                <p class="section-label mb-2">Formá parte de FoodSave</p>
+                <h1 class="h2 mb-2">Sumar mi comercio</h1>
+                <p class="lead mb-0">
+                    Contanos sobre tu comercio y nos vamos a comunicar con vos
+                    para continuar el alta.
+                </p>
+            </div>
+
+            <form asp-action="Create" method="post" class="admin-card">
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger"
+                     role="alert"></div>
+
+                <h2 class="h5 mb-3">Datos del comercio</h2>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="NombreComercio" class="form-label"></label>
+                        <input asp-for="NombreComercio" class="form-control" />
+                        <span asp-validation-for="NombreComercio" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Rubro" class="form-label"></label>
+                        <input asp-for="Rubro" class="form-control" />
+                        <span asp-validation-for="Rubro" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-8">
+                        <label asp-for="Direccion" class="form-label"></label>
+                        <input asp-for="Direccion" class="form-control" />
+                        <span asp-validation-for="Direccion" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="TelefonoComercio" class="form-label"></label>
+                        <input asp-for="TelefonoComercio"
+                               class="form-control"
+                               autocomplete="tel" />
+                        <span asp-validation-for="TelefonoComercio" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <h2 class="h5 mb-3">Titular o responsable</h2>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="NombreTitular" class="form-label"></label>
+                        <input asp-for="NombreTitular" class="form-control" />
+                        <span asp-validation-for="NombreTitular" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ApellidoTitular" class="form-label"></label>
+                        <input asp-for="ApellidoTitular" class="form-control" />
+                        <span asp-validation-for="ApellidoTitular" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="TelefonoTitular" class="form-label"></label>
+                        <input asp-for="TelefonoTitular"
+                               class="form-control"
+                               autocomplete="tel" />
+                        <span asp-validation-for="TelefonoTitular" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="EmailTitular" class="form-label"></label>
+                        <input asp-for="EmailTitular"
+                               class="form-control"
+                               autocomplete="email" />
+                        <span asp-validation-for="EmailTitular" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-5">
+                        <label asp-for="PlanInteres" class="form-label"></label>
+                        <select asp-for="PlanInteres" class="form-select">
+                            <option value="">Todavía no lo decidí</option>
+                            <option value="Estandar">Estándar</option>
+                            <option value="Pro">Pro</option>
+                        </select>
+                        <span asp-validation-for="PlanInteres" class="text-danger"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Mensaje" class="form-label"></label>
+                        <textarea asp-for="Mensaje"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Podés contarnos qué tipo de productos ofrecés o cualquier otro dato útil."></textarea>
+                        <span asp-validation-for="Mensaje" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        Enviar solicitud
+                    </button>
+                    <a class="btn btn-outline-secondary"
+                       asp-controller="Home"
+                       asp-action="Index">
+                        Volver al inicio
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

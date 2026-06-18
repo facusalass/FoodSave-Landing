@@ -10,7 +10,15 @@
             <p class="lead mb-4">
                 FoodSave conecta comercios que tienen excedentes de comida con usuarios que quieren reservar ofertas del d&iacute;a o Mystery Boxes a un precio m&aacute;s accesible.
             </p>
-            <a class="btn btn-primary btn-lg" asp-controller="Auth" asp-action="Login">Ingresar al panel</a>
+            <div class="hero-cta">
+                <a class="btn btn-primary btn-lg hero-cta-button"
+                   asp-controller="SolicitudesComercio"
+                   asp-action="Create">
+                    Quiero sumar mi comercio
+                    <span aria-hidden="true">&rarr;</span>
+                </a>
+                <small>Dejanos tus datos y te contactamos para comenzar.</small>
+            </div>
         </div>
         <div class="col-lg-5">
             <div class="hero-card">

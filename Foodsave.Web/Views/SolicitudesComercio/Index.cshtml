@@ -1,0 +1,106 @@
+@model List<Foodsave.Web.Models.SolicitudComercio>
+
+@{
+    ViewData["Title"] = "Solicitudes de comercios";
+}
+
+<section class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-2">Solicitudes de comercios</h1>
+            <p class="lead mb-0">
+                Revisá los comercios interesados en formar parte de FoodSave.
+            </p>
+        </div>
+        <a class="btn btn-outline-primary align-self-md-start"
+           asp-controller="Comercios"
+           asp-action="Index">
+            Volver a comercios
+        </a>
+    </div>
+
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success">@success</div>
+    }
+
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Comercio</th>
+                        <th>Rubro</th>
+                        <th>Responsable</th>
+                        <th>Contacto</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var solicitud in Model)
+                        {
+                            var whatsappUrl =
+                                Foodsave.Web.Helpers.WhatsAppLinkHelper.Create(
+                                    solicitud.TelefonoTitular,
+                                    solicitud.TelefonoComercio);
+                            var statusClass = solicitud.Estado switch
+                            {
+                                SolicitudComercio.EstadoAceptada => "status-accepted",
+                                SolicitudComercio.EstadoRechazada => "status-rejected",
+                                _ => "status-pending"
+                            };
+
+                            <tr>
+                                <td>@solicitud.NombreComercio</td>
+                                <td>@solicitud.Rubro</td>
+                                <td>
+                                    @solicitud.NombreTitular @solicitud.ApellidoTitular
+                                </td>
+                                <td>
+                                    <div>@solicitud.TelefonoComercio</div>
+                                    <small class="text-muted">@solicitud.EmailTitular</small>
+                                </td>
+                                <td>
+                                    <span class="status-badge @statusClass">
+                                        @solicitud.Estado
+                                    </span>
+                                </td>
+                                <td>@solicitud.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a class="btn btn-sm btn-outline-primary"
+                                           asp-action="Details"
+                                           asp-route-id="@solicitud.Id">
+                                            Ver detalle
+                                        </a>
+                                        @if (whatsappUrl is not null)
+                                        {
+                                            <a class="btn btn-sm btn-outline-success"
+                                               href="@whatsappUrl"
+                                               target="_blank"
+                                               rel="noopener noreferrer">
+                                                WhatsApp
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                Todavía no hay solicitudes recibidas.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

@@ -97,6 +97,32 @@ body {
   border-left: 6px solid var(--foodsave-orange);
 }
 
+.hero-cta {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hero-cta-button {
+  align-items: center;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.25);
+  display: inline-flex;
+  font-weight: 700;
+  gap: 12px;
+  padding: 13px 20px;
+}
+
+.hero-cta-button:hover {
+  box-shadow: 0 10px 24px rgba(255, 107, 53, 0.32);
+  transform: translateY(-1px);
+}
+
+.hero-cta small {
+  color: #66736b;
+}
+
 .info-card p,
 .plan-card p,
 .step-card p {
@@ -165,6 +191,29 @@ body {
 
 .validation-summary-valid {
   display: none;
+}
+
+.status-badge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #7a5d00;
+}
+
+.status-accepted {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-rejected {
+  background-color: #f8d7da;
+  color: #842029;
 }
 
 .btn-primary {

@@ -1,0 +1,154 @@
+@model Foodsave.Web.Models.SolicitudComercio
+
+@{
+    ViewData["Title"] = "Detalle de solicitud";
+    var whatsappUrl = Foodsave.Web.Helpers.WhatsAppLinkHelper.Create(
+        Model.TelefonoTitular,
+        Model.TelefonoComercio);
+    var statusClass = Model.Estado switch
+    {
+        SolicitudComercio.EstadoAceptada => "status-accepted",
+        SolicitudComercio.EstadoRechazada => "status-rejected",
+        _ => "status-pending"
+    };
+}
+
+<section class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                <h1 class="h2 mb-0">@Model.NombreComercio</h1>
+                <span class="status-badge @statusClass">@Model.Estado</span>
+            </div>
+            <p class="lead mb-0">@Model.Rubro</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-self-md-start">
+            @if (whatsappUrl is not null)
+            {
+                <a class="btn btn-outline-success"
+                   href="@whatsappUrl"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    Contactar por WhatsApp
+                </a>
+            }
+            <a class="btn btn-outline-primary"
+               asp-action="Index">
+                Volver al listado
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success">@success</div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="info-card h-100">
+                <h2 class="h5">Datos del comercio</h2>
+                <p class="mb-1"><strong>Nombre:</strong> @Model.NombreComercio</p>
+                <p class="mb-1"><strong>Rubro:</strong> @Model.Rubro</p>
+                <p class="mb-1"><strong>Dirección:</strong> @(Model.Direccion ?? "No informada")</p>
+                <p class="mb-0"><strong>Teléfono:</strong> @Model.TelefonoComercio</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-card h-100">
+                <h2 class="h5">Titular o responsable</h2>
+                <p class="mb-1">
+                    <strong>Nombre:</strong>
+                    @Model.NombreTitular @Model.ApellidoTitular
+                </p>
+                <p class="mb-1"><strong>Email:</strong> @Model.EmailTitular</p>
+                <p class="mb-0">
+                    <strong>Teléfono:</strong>
+                    @(Model.TelefonoTitular ?? "No informado")
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card mb-4">
+        <h2 class="h5 mb-3">Información de la solicitud</h2>
+        <p class="mb-1">
+            <strong>Plan de interés:</strong>
+            @(Model.PlanInteres ?? "No informado")
+        </p>
+        <p class="mb-1">
+            <strong>Fecha de solicitud:</strong>
+            @Model.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")
+        </p>
+        <p class="mb-1">
+            <strong>Fecha de revisión:</strong>
+            @(Model.FechaRevision?.ToString("dd/MM/yyyy HH:mm") ?? "Pendiente")
+        </p>
+        <p class="mb-1">
+            <strong>Mensaje:</strong>
+            @(Model.Mensaje ?? "Sin comentarios")
+        </p>
+        <p class="mb-0">
+            <strong>Observación interna:</strong>
+            @(Model.ObservacionAdmin ?? "Sin observaciones")
+        </p>
+    </div>
+
+    @if (Model.Estado == SolicitudComercio.EstadoPendiente)
+    {
+        <div class="admin-card">
+            <h2 class="h5 mb-3">Revisar solicitud</h2>
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    <form asp-action="Aceptar" asp-route-id="@Model.Id" method="post">
+                        <label for="aceptarObservacion" class="form-label">
+                            Observación interna opcional
+                        </label>
+                        <textarea id="aceptarObservacion"
+                                  name="observacionAdmin"
+                                  class="form-control mb-3"
+                                  maxlength="1000"
+                                  rows="3"></textarea>
+                        <button type="submit" class="btn btn-success">
+                            Aceptar solicitud
+                        </button>
+                    </form>
+                </div>
+                <div class="col-lg-6">
+                    <form asp-action="Rechazar" asp-route-id="@Model.Id" method="post">
+                        <label for="rechazarObservacion" class="form-label">
+                            Motivo u observación interna opcional
+                        </label>
+                        <textarea id="rechazarObservacion"
+                                  name="observacionAdmin"
+                                  class="form-control mb-3"
+                                  maxlength="1000"
+                                  rows="3"></textarea>
+                        <button type="submit" class="btn btn-outline-danger">
+                            Rechazar solicitud
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model.Estado == SolicitudComercio.EstadoAceptada)
+    {
+        <div class="admin-card">
+            <h2 class="h5 mb-2">Solicitud aceptada</h2>
+            <p>
+                El siguiente paso es inscribir manualmente el comercio usando
+                el formulario administrativo existente.
+            </p>
+            <a class="btn btn-primary"
+               asp-controller="Comercios"
+               asp-action="Create">
+                Inscribir comercio
+            </a>
+        </div>
+    }
+</section>
