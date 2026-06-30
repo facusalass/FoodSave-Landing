@@ -9,11 +9,11 @@ namespace Foodsave.Web.Controllers.Api
     [ApiController]
     [Route("api/estadisticas")]
     [Produces("application/json")]
-    public class EstadisticasController : ControllerBase
+    public class ApiEstadisticasController : ControllerBase
     {
         private readonly EstadisticasService _estadisticasService;
 
-        public EstadisticasController(EstadisticasService estadisticasService)
+        public ApiEstadisticasController(EstadisticasService estadisticasService)
         {
             _estadisticasService = estadisticasService;
         }

@@ -12,16 +12,16 @@ namespace Foodsave.Web.Controllers.Api
     [ApiController]
     [Route("api/comercios")]
     [Produces("application/json")]
-    public class ComerciosController : ControllerBase
+    public class ApiComerciosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly GestionSuscripcionesService _gestionSuscripciones;
-        private readonly ILogger<ComerciosController> _logger;
+        private readonly ILogger<ApiComerciosController> _logger;
 
-        public ComerciosController(
+        public ApiComerciosController(
             ApplicationDbContext context,
             GestionSuscripcionesService gestionSuscripciones,
-            ILogger<ComerciosController> logger)
+            ILogger<ApiComerciosController> logger)
         {
             _context = context;
             _gestionSuscripciones = gestionSuscripciones;

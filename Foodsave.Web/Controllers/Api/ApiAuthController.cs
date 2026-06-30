@@ -8,14 +8,14 @@ namespace Foodsave.Web.Controllers.Api
     [ApiController]
     [Route("api/auth")]
     [Produces("application/json")]
-    public class AuthController : ControllerBase
+    public class ApiAuthController : ControllerBase
     {
         private readonly AuthService _authService;
-        private readonly ILogger<AuthController> _logger;
+        private readonly ILogger<ApiAuthController> _logger;
 
-        public AuthController(
+        public ApiAuthController(
             AuthService authService,
-            ILogger<AuthController> logger)
+            ILogger<ApiAuthController> logger)
         {
             _authService = authService;
             _logger = logger;
