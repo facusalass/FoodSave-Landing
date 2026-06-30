@@ -2,18 +2,25 @@
     ViewData["Title"] = "Solicitud enviada";
 }
 
-<section class="login-section py-5">
-    <div class="login-card text-center">
-        <p class="section-label mb-2">Solicitud recibida</p>
-        <h1 class="h3 mb-3">¡Gracias por querer sumarte!</h1>
-        <p class="mb-4">
-            Tu solicitud fue enviada correctamente. Nos vamos a comunicar con
-            vos para continuar el alta en FoodSave.
-        </p>
-        <a class="btn btn-primary"
-           asp-controller="Home"
-           asp-action="Index">
-            Volver al inicio
-        </a>
+<section class="py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="admin-card">
+                <div style="width:56px;height:56px;background-color:var(--foodsave-green);border-radius:50%;
+                            display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                    <span style="color:#fff;font-size:1.6rem;line-height:1;">&#10003;</span>
+                </div>
+                <p class="section-label mb-2">Solicitud recibida</p>
+                <h1 class="h3 fw-bold mb-3">&iexcl;Gracias por querer sumarte!</h1>
+                <p class="mb-4" style="color: var(--foodsave-gray);">
+                    Tu solicitud fue enviada. Nos vamos a comunicar con vos
+                    para continuar con el alta en FoodSave.
+                </p>
+                <a class="btn btn-primary"
+                   asp-controller="Home" asp-action="Index">
+                    Volver al inicio
+                </a>
+            </div>
+        </div>
     </div>
 </section>

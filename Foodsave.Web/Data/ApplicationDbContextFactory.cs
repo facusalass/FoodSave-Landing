@@ -27,7 +27,9 @@ namespace Foodsave.Web.Data
                 .Build();
 
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseNpgsql(DatabaseConnectionStringResolver.Resolve(configuration))
+                .UseNpgsql(
+                    DatabaseConnectionStringResolver.Resolve(configuration),
+                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure())
                 .Options;
 
             return new ApplicationDbContext(options);

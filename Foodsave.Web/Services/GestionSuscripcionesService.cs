@@ -24,36 +24,36 @@ namespace Foodsave.Web.Services
                     .FirstOrDefault();
         }
 
-        public string ObtenerEstadoPagoEfectivo(
+        public (Suscripcion? Suscripcion, EstadoPagoSuscripcion EstadoPago) ObtenerEstadoCompleto(
+            IEnumerable<Suscripcion> suscripciones,
+            DateTime fecha)
+        {
+            var suscripcion = ObtenerSuscripcionActual(suscripciones, fecha);
+            var estadoPago = ObtenerEstadoPagoEfectivo(suscripcion, fecha);
+            return (suscripcion, estadoPago);
+        }
+
+        public EstadoPagoSuscripcion ObtenerEstadoPagoEfectivo(
             Suscripcion? suscripcion,
             DateTime fecha)
         {
             if (suscripcion is null)
-            {
-                return Suscripcion.EstadoPagoPendiente;
-            }
+                return EstadoPagoSuscripcion.Pendiente;
 
             if (suscripcion.FechaProximoVencimiento.Date < fecha.Date)
-            {
-                return Suscripcion.EstadoPagoVencido;
-            }
+                return EstadoPagoSuscripcion.Vencido;
 
-            return suscripcion.EstadoPago switch
-            {
-                Suscripcion.EstadoPagoAlDia => Suscripcion.EstadoPagoAlDia,
-                Suscripcion.EstadoPagoVencido => Suscripcion.EstadoPagoVencido,
-                _ => Suscripcion.EstadoPagoPendiente
-            };
+            return suscripcion.EstadoPago;
         }
 
-        public string ObtenerEstadoAlReactivar(
+        public EstadoAdministrativo ObtenerEstadoAlReactivar(
             Suscripcion? suscripcion,
             DateTime fecha)
         {
             return ObtenerEstadoPagoEfectivo(suscripcion, fecha) ==
-                   Suscripcion.EstadoPagoAlDia
-                ? Comercio.EstadoActivo
-                : Comercio.EstadoPendientePago;
+                   EstadoPagoSuscripcion.AlDia
+                ? EstadoAdministrativo.Activo
+                : EstadoAdministrativo.PendientePago;
         }
     }
 }

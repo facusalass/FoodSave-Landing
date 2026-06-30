@@ -1,11 +1,15 @@
+using Foodsave.Web.Models;
 using Foodsave.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Foodsave.Web.Controllers
+namespace Foodsave.Web.Controllers.Api
 {
     [Authorize]
-    public class EstadisticasController : Controller
+    [ApiController]
+    [Route("api/estadisticas")]
+    [Produces("application/json")]
+    public class EstadisticasController : ControllerBase
     {
         private readonly EstadisticasService _estadisticasService;
 
@@ -14,10 +18,12 @@ namespace Foodsave.Web.Controllers
             _estadisticasService = estadisticasService;
         }
 
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        [ProducesResponseType(typeof(EstadisticasViewModel), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Get()
         {
             var model = await _estadisticasService.ObtenerEstadisticasAsync();
-            return View(model);
+            return Ok(model);
         }
     }
 }

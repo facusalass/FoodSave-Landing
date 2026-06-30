@@ -4,10 +4,6 @@ namespace Foodsave.Web.Models
 {
     public class SolicitudComercio
     {
-        public const string EstadoPendiente = "Pendiente";
-        public const string EstadoAceptada = "Aceptada";
-        public const string EstadoRechazada = "Rechazada";
-
         public int Id { get; set; }
 
         [MaxLength(150)]
@@ -38,10 +34,10 @@ namespace Foodsave.Web.Models
         public string? Mensaje { get; set; }
 
         [MaxLength(20)]
-        public string? PlanInteres { get; set; }
+        public PlanSuscripcion? PlanInteres { get; set; }
 
         [MaxLength(20)]
-        public string Estado { get; set; } = EstadoPendiente;
+        public EstadoSolicitud Estado { get; set; } = EstadoSolicitud.Pendiente;
 
         public DateTime FechaSolicitud { get; set; }
         public DateTime? FechaRevision { get; set; }

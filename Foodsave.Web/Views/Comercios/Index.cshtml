@@ -53,14 +53,14 @@
                             var comercioStatusClass =
                                 item.Comercio.EstadoAdministrativo switch
                                 {
-                                    Comercio.EstadoActivo => "status-accepted",
-                                    Comercio.EstadoInhabilitado => "status-rejected",
+                                    EstadoAdministrativo.Activo => "status-accepted",
+                                    EstadoAdministrativo.Inhabilitado => "status-rejected",
                                     _ => "status-pending"
                                 };
                             var pagoStatusClass = item.EstadoPagoEfectivo switch
                             {
-                                Suscripcion.EstadoPagoAlDia => "status-accepted",
-                                Suscripcion.EstadoPagoVencido => "status-rejected",
+                                EstadoPagoSuscripcion.AlDia => "status-accepted",
+                                EstadoPagoSuscripcion.Vencido => "status-rejected",
                                 _ => "status-pending"
                             };
 
@@ -74,7 +74,7 @@
                                         @item.Comercio.EstadoAdministrativo
                                     </span>
                                 </td>
-                                <td>@(item.SuscripcionActual?.Plan ?? "Sin plan")</td>
+                                <td>@(item.SuscripcionActual?.Plan.ToString() ?? "Sin plan")</td>
                                 <td>
                                     <span class="status-badge @pagoStatusClass">
                                         @item.EstadoPagoEfectivo

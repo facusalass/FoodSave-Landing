@@ -49,8 +49,8 @@
                                     solicitud.TelefonoComercio);
                             var statusClass = solicitud.Estado switch
                             {
-                                SolicitudComercio.EstadoAceptada => "status-accepted",
-                                SolicitudComercio.EstadoRechazada => "status-rejected",
+                                EstadoSolicitud.Aceptada => "status-accepted",
+                                EstadoSolicitud.Rechazada => "status-rejected",
                                 _ => "status-pending"
                             };
 

@@ -1,7 +1,9 @@
 using Foodsave.Web.Data;
+using Foodsave.Web.Helpers;
 using Foodsave.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Foodsave.Web.Controllers
@@ -10,16 +12,20 @@ namespace Foodsave.Web.Controllers
     public class SolicitudesComercioController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<SolicitudesComercioController> _logger;
 
-        public SolicitudesComercioController(ApplicationDbContext context)
+        public SolicitudesComercioController(
+            ApplicationDbContext context,
+            ILogger<SolicitudesComercioController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
         {
             var solicitudes = await _context.SolicitudesComercio
-                .OrderBy(s => s.Estado != SolicitudComercio.EstadoPendiente)
+                .OrderBy(s => s.Estado != EstadoSolicitud.Pendiente)
                 .ThenByDescending(s => s.FechaSolicitud)
                 .ToListAsync();
 
@@ -41,32 +47,18 @@ namespace Foodsave.Web.Controllers
 
         [AllowAnonymous]
         [HttpPost]
+        [EnableRateLimiting("SolicitudForm")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SolicitudComercioInputModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View(model);
-            }
 
-            var solicitud = new SolicitudComercio
-            {
-                NombreComercio = model.NombreComercio.Trim(),
-                Rubro = model.Rubro.Trim(),
-                Direccion = NormalizeOptional(model.Direccion),
-                TelefonoComercio = model.TelefonoComercio.Trim(),
-                NombreTitular = model.NombreTitular.Trim(),
-                ApellidoTitular = NormalizeOptional(model.ApellidoTitular),
-                TelefonoTitular = NormalizeOptional(model.TelefonoTitular),
-                EmailTitular = model.EmailTitular.Trim().ToLowerInvariant(),
-                Mensaje = NormalizeOptional(model.Mensaje),
-                PlanInteres = NormalizeOptional(model.PlanInteres),
-                Estado = SolicitudComercio.EstadoPendiente,
-                FechaSolicitud = DateTime.UtcNow
-            };
-
+            var solicitud = model.ToEntity();
             _context.SolicitudesComercio.Add(solicitud);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Solicitud recibida: {Nombre}", solicitud.NombreComercio);
 
             return RedirectToAction(nameof(Confirmacion));
         }
@@ -84,10 +76,7 @@ namespace Foodsave.Web.Controllers
             int id,
             string? observacionAdmin)
         {
-            return await Review(
-                id,
-                SolicitudComercio.EstadoAceptada,
-                observacionAdmin);
+            return await Review(id, EstadoSolicitud.Aceptada, observacionAdmin);
         }
 
         [HttpPost]
@@ -96,30 +85,25 @@ namespace Foodsave.Web.Controllers
             int id,
             string? observacionAdmin)
         {
-            return await Review(
-                id,
-                SolicitudComercio.EstadoRechazada,
-                observacionAdmin);
+            return await Review(id, EstadoSolicitud.Rechazada, observacionAdmin);
         }
 
         private async Task<IActionResult> Review(
             int id,
-            string nextStatus,
+            EstadoSolicitud nextStatus,
             string? observation)
         {
             var solicitud = await _context.SolicitudesComercio.FindAsync(id);
             if (solicitud is null)
-            {
                 return NotFound();
-            }
 
-            if (solicitud.Estado != SolicitudComercio.EstadoPendiente)
+            if (solicitud.Estado != EstadoSolicitud.Pendiente)
             {
                 TempData["Error"] = "La solicitud ya fue revisada.";
                 return RedirectToAction(nameof(Details), new { id });
             }
 
-            var normalizedObservation = NormalizeOptional(observation);
+            var normalizedObservation = TextHelper.NormalizarOpcional(observation);
             if (normalizedObservation?.Length > 1000)
             {
                 TempData["Error"] =
@@ -132,16 +116,15 @@ namespace Foodsave.Web.Controllers
             solicitud.ObservacionAdmin = normalizedObservation;
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = nextStatus == SolicitudComercio.EstadoAceptada
+            _logger.LogInformation(
+                "Solicitud {Estado}: Id={Id}, {Nombre}",
+                nextStatus, id, solicitud.NombreComercio);
+
+            TempData["Success"] = nextStatus == EstadoSolicitud.Aceptada
                 ? "Solicitud aceptada. Ya podés inscribir el comercio manualmente."
                 : "Solicitud rechazada.";
 
             return RedirectToAction(nameof(Details), new { id });
-        }
-
-        private static string? NormalizeOptional(string? value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
     }
 }

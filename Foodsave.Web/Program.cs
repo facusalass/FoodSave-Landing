@@ -1,7 +1,4 @@
 using Foodsave.Web.Data;
-using Foodsave.Web.Infrastructure;
-using Foodsave.Web.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,32 +16,29 @@ namespace Foodsave.Web
                 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
             }
 
-            builder.Services.AddControllersWithViews(options =>
-            {
-                options.ModelBinderProviders.Insert(
-                    0,
-                    new InvariantDecimalModelBinderProvider());
-            });
-            builder.Services.AddScoped<GestionSuscripcionesService>();
-
             builder.Services
-                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
-                {
-                    options.LoginPath = "/Auth/Login";
-                    options.AccessDeniedPath = "/Auth/Login";
-                    options.Cookie.Name = "FoodSave.Auth";
-                    options.ExpireTimeSpan = TimeSpan.FromHours(8);
-                    options.SlidingExpiration = true;
-                });
+                .AddFoodSaveMvc()
+                .AddFoodSaveSwagger()
+                .AddFoodSaveHealthChecks()
+                .AddFoodSaveServices()
+                .AddFoodSaveAuth()
+                .AddFoodSaveRateLimiting();
 
-            var connectionString =
-                DatabaseConnectionStringResolver.Resolve(builder.Configuration);
-
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(
-                    connectionString,
-                    npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()));
+            if (TryConfigurePostgreSql(builder))
+            {
+                builder.Logging.AddConsole();
+            }
+            else if (builder.Environment.IsDevelopment())
+            {
+                ConfigureSqlite(builder);
+                builder.Logging.AddConsole();
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "No se configuró PostgreSQL. Definí " +
+                    "ConnectionStrings__DefaultConnection o DATABASE_URL.");
+            }
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
@@ -59,11 +53,19 @@ namespace Foodsave.Web
 
             using (var scope = app.Services.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var context = scope.ServiceProvider
+                    .GetRequiredService<ApplicationDbContext>();
                 DbInitializer.Initialize(context);
             }
 
             app.UseForwardedHeaders();
+            app.UseRateLimiter();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
 
             if (!app.Environment.IsDevelopment())
             {
@@ -82,7 +84,39 @@ namespace Foodsave.Web
                 pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
+            app.MapHealthChecks("/health");
+
             app.Run();
+        }
+
+        private static bool TryConfigurePostgreSql(WebApplicationBuilder builder)
+        {
+            try
+            {
+                var connectionString =
+                    DatabaseConnectionStringResolver.Resolve(builder.Configuration);
+
+                builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseNpgsql(
+                        connectionString,
+                        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()));
+
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        }
+
+        private static void ConfigureSqlite(WebApplicationBuilder builder)
+        {
+            var dbPath = Path.Combine(
+                builder.Environment.ContentRootPath,
+                "foodsave_dev.db");
+
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}"));
         }
     }
 }

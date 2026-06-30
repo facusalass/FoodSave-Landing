@@ -4,21 +4,13 @@ namespace Foodsave.Web.Models
 {
     public class Suscripcion
     {
-        public const string EstadoActiva = "Activa";
-        public const string EstadoPendiente = "Pendiente";
-        public const string EstadoVencida = "Vencida";
-
-        public const string EstadoPagoAlDia = "AlDia";
-        public const string EstadoPagoPendiente = "Pendiente";
-        public const string EstadoPagoVencido = "Vencido";
-
         public int Id { get; set; }
 
         [MaxLength(20)]
-        public string Plan { get; set; } = string.Empty;
+        public PlanSuscripcion Plan { get; set; }
 
         [MaxLength(20)]
-        public string Estado { get; set; } = string.Empty;
+        public EstadoSuscripcion Estado { get; set; }
 
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
@@ -28,9 +20,9 @@ namespace Foodsave.Web.Models
         public DateTime FechaProximoVencimiento { get; set; }
 
         [MaxLength(20)]
-        public string EstadoPago { get; set; } = EstadoPagoPendiente;
+        public EstadoPagoSuscripcion EstadoPago { get; set; } = EstadoPagoSuscripcion.Pendiente;
 
-        public int? ComercioId { get; set; }
+        public int ComercioId { get; set; }
         public Comercio? Comercio { get; set; }
         public List<Pago> Pagos { get; set; } = new();
     }

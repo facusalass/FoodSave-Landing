@@ -4,6 +4,6 @@ namespace Foodsave.Web.Models
     {
         public Comercio Comercio { get; set; } = null!;
         public Suscripcion? SuscripcionActual { get; set; }
-        public string EstadoPagoEfectivo { get; set; } = Suscripcion.EstadoPagoPendiente;
+        public EstadoPagoSuscripcion EstadoPagoEfectivo { get; set; } = EstadoPagoSuscripcion.Pendiente;
     }
 }

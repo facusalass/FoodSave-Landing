@@ -3,6 +3,7 @@ using System;
 using Foodsave.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,13 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Foodsave.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260630041750_MakeComercioIdRequired")]
+    partial class MakeComercioIdRequired
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -32,8 +35,7 @@ namespace Foodsave.Web.Migrations
 
                     b.Property<string>("Direccion")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.Property<string>("EstadoAdministrativo")
                         .IsRequired()
@@ -42,18 +44,15 @@ namespace Foodsave.Web.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Rubro")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Telefono")
                         .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("text");
 
                     b.Property<int>("TitularId")
                         .HasColumnType("integer");
@@ -61,11 +60,6 @@ namespace Foodsave.Web.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EstadoAdministrativo");
-
-                    b.HasIndex("Nombre")
-                        .IsUnique();
-
-                    b.HasIndex("Rubro");
 
                     b.HasIndex("TitularId");
 
@@ -99,9 +93,11 @@ namespace Foodsave.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SuscripcionId");
+                    b.HasIndex("ComercioId");
 
-                    b.HasIndex("ComercioId", "SuscripcionId", "FechaPago");
+                    b.HasIndex("FechaPago");
+
+                    b.HasIndex("SuscripcionId");
 
                     b.ToTable("Pagos");
                 });
@@ -176,8 +172,6 @@ namespace Foodsave.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EmailTitular");
-
                     b.HasIndex("Estado");
 
                     b.HasIndex("FechaSolicitud");
@@ -231,8 +225,6 @@ namespace Foodsave.Web.Migrations
 
                     b.HasIndex("ComercioId");
 
-                    b.HasIndex("Estado");
-
                     b.HasIndex("EstadoPago");
 
                     b.HasIndex("FechaProximoVencimiento");
@@ -250,28 +242,21 @@ namespace Foodsave.Web.Migrations
 
                     b.Property<string>("Apellido")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Telefono")
                         .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
 
                     b.ToTable("Titulares");
                 });
@@ -281,7 +266,7 @@ namespace Foodsave.Web.Migrations
                     b.HasOne("Foodsave.Web.Models.Titular", "Titular")
                         .WithMany()
                         .HasForeignKey("TitularId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Titular");
@@ -292,7 +277,7 @@ namespace Foodsave.Web.Migrations
                     b.HasOne("Foodsave.Web.Models.Comercio", "Comercio")
                         .WithMany("Pagos")
                         .HasForeignKey("ComercioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Foodsave.Web.Models.Suscripcion", "Suscripcion")

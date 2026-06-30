@@ -1,4 +1,5 @@
 using Foodsave.Web.Data;
+using Foodsave.Web.Helpers;
 using Foodsave.Web.Models;
 using Foodsave.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -8,19 +9,23 @@ using Microsoft.EntityFrameworkCore;
 namespace Foodsave.Web.Controllers
 {
     [Authorize]
-    public class ComerciosController : Controller
+    public partial class ComerciosController : Controller
     {
-        private static readonly string[] PlanesPermitidos = ["Estandar", "Pro"];
-
         private readonly ApplicationDbContext _context;
         private readonly GestionSuscripcionesService _gestionSuscripciones;
+        private readonly RegistroPagoService _registroPagoService;
+        private readonly ILogger<ComerciosController> _logger;
 
         public ComerciosController(
             ApplicationDbContext context,
-            GestionSuscripcionesService gestionSuscripciones)
+            GestionSuscripcionesService gestionSuscripciones,
+            RegistroPagoService registroPagoService,
+            ILogger<ComerciosController> logger)
         {
             _context = context;
             _gestionSuscripciones = gestionSuscripciones;
+            _registroPagoService = registroPagoService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -35,18 +40,15 @@ namespace Foodsave.Web.Controllers
 
             var model = comercios.Select(comercio =>
             {
-                var suscripcion = _gestionSuscripciones.ObtenerSuscripcionActual(
-                    comercio.Suscripciones,
-                    hoy);
+                var (suscripcion, estadoPago) =
+                    _gestionSuscripciones.ObtenerEstadoCompleto(
+                        comercio.Suscripciones, hoy);
 
                 return new ComercioAdministracionViewModel
                 {
                     Comercio = comercio,
                     SuscripcionActual = suscripcion,
-                    EstadoPagoEfectivo =
-                        _gestionSuscripciones.ObtenerEstadoPagoEfectivo(
-                            suscripcion,
-                            hoy)
+                    EstadoPagoEfectivo = estadoPago
                 };
             }).ToList();
 
@@ -55,41 +57,7 @@ namespace Foodsave.Web.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            var comercio = await _context.Comercios
-                .AsNoTracking()
-                .AsSplitQuery()
-                .Include(c => c.Titular)
-                .Include(c => c.Suscripciones)
-                .Include(c => c.Pagos)
-                    .ThenInclude(p => p.Suscripcion)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (comercio is null)
-            {
-                return NotFound();
-            }
-
-            comercio.Suscripciones = comercio.Suscripciones
-                .OrderByDescending(s => s.FechaInicio)
-                .ToList();
-            comercio.Pagos = comercio.Pagos
-                .OrderByDescending(p => p.FechaPago)
-                .ThenByDescending(p => p.Id)
-                .ToList();
-
-            var suscripcion = _gestionSuscripciones.ObtenerSuscripcionActual(
-                comercio.Suscripciones,
-                DateTime.Today);
-
-            return View(new ComercioAdministracionViewModel
-            {
-                Comercio = comercio,
-                SuscripcionActual = suscripcion,
-                EstadoPagoEfectivo =
-                    _gestionSuscripciones.ObtenerEstadoPagoEfectivo(
-                        suscripcion,
-                        DateTime.Today)
-            });
+            return await DetailsView(id);
         }
 
         [HttpGet]
@@ -105,7 +73,7 @@ namespace Foodsave.Web.Controllers
             string planInicial,
             decimal montoMensual)
         {
-            var plan = NormalizarPlan(planInicial);
+            var plan = PlanHelper.NormalizarPlan(planInicial);
             if (plan is null)
             {
                 ModelState.AddModelError(
@@ -128,23 +96,26 @@ namespace Foodsave.Web.Controllers
             }
 
             var hoy = DateTime.Today;
-            comercio.EstadoAdministrativo = Comercio.EstadoPendientePago;
+            comercio.EstadoAdministrativo = EstadoAdministrativo.PendientePago;
             comercio.Suscripciones =
             [
                 new Suscripcion
                 {
-                    Plan = plan!,
-                    Estado = Suscripcion.EstadoActiva,
+                    Plan = Enum.Parse<PlanSuscripcion>(plan!),
+                    Estado = EstadoSuscripcion.Activa,
                     FechaInicio = hoy,
                     FechaFin = hoy.AddMonths(1),
                     MontoMensual = montoMensual,
                     FechaProximoVencimiento = hoy,
-                    EstadoPago = Suscripcion.EstadoPagoPendiente
+                    EstadoPago = EstadoPagoSuscripcion.Pendiente
                 }
             ];
 
             _context.Comercios.Add(comercio);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Comercio creado: {Nombre} (Id={Id})",
+                comercio.Nombre, comercio.Id);
 
             TempData["Success"] =
                 "Comercio creado. La suscripción quedó pendiente de pago.";
@@ -157,12 +128,12 @@ namespace Foodsave.Web.Controllers
         {
             var comercio = await _context.Comercios.FindAsync(id);
             if (comercio is null)
-            {
                 return NotFound();
-            }
 
-            comercio.EstadoAdministrativo = Comercio.EstadoInhabilitado;
+            comercio.EstadoAdministrativo = EstadoAdministrativo.Inhabilitado;
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Comercio inhabilitado: Id={Id}", id);
             TempData["Success"] = "El comercio fue inhabilitado.";
 
             return RedirectToAction(nameof(Details), new { id });
@@ -176,255 +147,59 @@ namespace Foodsave.Web.Controllers
                 .Include(c => c.Suscripciones)
                 .FirstOrDefaultAsync(c => c.Id == id);
             if (comercio is null)
-            {
                 return NotFound();
-            }
 
             var suscripcion = _gestionSuscripciones.ObtenerSuscripcionActual(
-                comercio.Suscripciones,
-                DateTime.Today);
+                comercio.Suscripciones, DateTime.Today);
             comercio.EstadoAdministrativo =
                 _gestionSuscripciones.ObtenerEstadoAlReactivar(
-                    suscripcion,
-                    DateTime.Today);
+                    suscripcion, DateTime.Today);
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Comercio reactivado: Id={Id}, Estado={Estado}",
+                id, comercio.EstadoAdministrativo);
+
             TempData["Success"] =
-                comercio.EstadoAdministrativo == Comercio.EstadoActivo
+                comercio.EstadoAdministrativo == EstadoAdministrativo.Activo
                     ? "El comercio fue reactivado."
                     : "El comercio fue reactivado y quedó pendiente de pago.";
 
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MarcarPendientePago(int id)
-        {
-            var resultado = await ObtenerComercioYSuscripcionActual(id);
-            if (resultado.Comercio is null)
-            {
-                return NotFound();
-            }
-
-            if (resultado.Suscripcion is null)
-            {
-                TempData["Error"] =
-                    "El comercio no tiene una suscripción para actualizar.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
-
-            resultado.Suscripcion.EstadoPago =
-                Suscripcion.EstadoPagoPendiente;
-            if (resultado.Comercio.EstadoAdministrativo !=
-                Comercio.EstadoInhabilitado)
-            {
-                resultado.Comercio.EstadoAdministrativo =
-                    Comercio.EstadoPendientePago;
-            }
-
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "El comercio quedó pendiente de pago.";
-
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MarcarAlDia(int id)
-        {
-            var resultado = await ObtenerComercioYSuscripcionActual(id);
-            if (resultado.Comercio is null)
-            {
-                return NotFound();
-            }
-
-            if (resultado.Suscripcion is null)
-            {
-                TempData["Error"] =
-                    "El comercio no tiene una suscripción para actualizar.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
-
-            var hoy = DateTime.Today;
-            resultado.Suscripcion.EstadoPago = Suscripcion.EstadoPagoAlDia;
-            resultado.Suscripcion.Estado = Suscripcion.EstadoActiva;
-            if (resultado.Suscripcion.FechaProximoVencimiento.Date < hoy)
-            {
-                resultado.Suscripcion.FechaProximoVencimiento =
-                    hoy.AddMonths(1);
-            }
-
-            if (resultado.Comercio.EstadoAdministrativo ==
-                Comercio.EstadoPendientePago)
-            {
-                resultado.Comercio.EstadoAdministrativo =
-                    Comercio.EstadoActivo;
-            }
-
-            await _context.SaveChangesAsync();
-            TempData["Success"] =
-                "La suscripción fue marcada al día sin registrar un cobro.";
-
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActualizarSuscripcion(
-            int id,
-            ActualizarSuscripcionInputModel model)
-        {
-            if (id != model.ComercioId)
-            {
-                return BadRequest();
-            }
-
-            var plan = NormalizarPlan(model.Plan);
-            if (plan is null)
-            {
-                ModelState.AddModelError(
-                    nameof(model.Plan),
-                    "Seleccioná un plan válido.");
-            }
-
-            if (model.FechaProximoVencimiento == default)
-            {
-                ModelState.AddModelError(
-                    nameof(model.FechaProximoVencimiento),
-                    "Ingresá el próximo vencimiento.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                TempData["Error"] = string.Join(
-                    " ",
-                    ModelState.Values
-                        .SelectMany(value => value.Errors)
-                        .Select(error => error.ErrorMessage));
-                return RedirectToAction(nameof(Details), new { id });
-            }
-
-            var suscripcion = await _context.Suscripciones
-                .FirstOrDefaultAsync(
-                    s => s.Id == model.SuscripcionId &&
-                         s.ComercioId == model.ComercioId);
-            if (suscripcion is null)
-            {
-                return NotFound();
-            }
-
-            suscripcion.Plan = plan!;
-            suscripcion.MontoMensual = model.MontoMensual;
-            suscripcion.FechaProximoVencimiento =
-                model.FechaProximoVencimiento.Date;
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "La suscripción fue actualizada.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> RegistrarPago(int id)
+        private async Task<IActionResult> DetailsView(int id)
         {
             var comercio = await _context.Comercios
                 .AsNoTracking()
+                .AsSplitQuery()
+                .Include(c => c.Titular)
                 .Include(c => c.Suscripciones)
+                .Include(c => c.Pagos)
+                    .ThenInclude(p => p.Suscripcion)
                 .FirstOrDefaultAsync(c => c.Id == id);
+
             if (comercio is null)
-            {
                 return NotFound();
-            }
 
-            var suscripcion = _gestionSuscripciones.ObtenerSuscripcionActual(
-                comercio.Suscripciones,
-                DateTime.Today);
-            if (suscripcion is null)
-            {
-                TempData["Error"] =
-                    "El comercio no tiene una suscripción para cobrar.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
+            comercio.Suscripciones = comercio.Suscripciones
+                .OrderByDescending(s => s.FechaInicio)
+                .ToList();
+            comercio.Pagos = comercio.Pagos
+                .OrderByDescending(p => p.FechaPago)
+                .ThenByDescending(p => p.Id)
+                .ToList();
 
-            return View(new RegistrarPagoInputModel
+            var (suscripcion, estadoPago) =
+                _gestionSuscripciones.ObtenerEstadoCompleto(
+                    comercio.Suscripciones, DateTime.Today);
+
+            return View("Details", new ComercioAdministracionViewModel
             {
-                ComercioId = comercio.Id,
-                SuscripcionId = suscripcion.Id,
-                ComercioNombre = comercio.Nombre,
-                Plan = suscripcion.Plan,
-                Monto = suscripcion.MontoMensual,
-                FechaPago = DateTime.Today
+                Comercio = comercio,
+                SuscripcionActual = suscripcion,
+                EstadoPagoEfectivo = estadoPago
             });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RegistrarPago(
-            int id,
-            RegistrarPagoInputModel model)
-        {
-            if (id != model.ComercioId)
-            {
-                return BadRequest();
-            }
-
-            if (model.FechaPago == default)
-            {
-                ModelState.AddModelError(
-                    nameof(model.FechaPago),
-                    "Ingresá la fecha del pago.");
-            }
-            else if (model.FechaPago.Date > DateTime.Today)
-            {
-                ModelState.AddModelError(
-                    nameof(model.FechaPago),
-                    "La fecha del pago no puede ser futura.");
-            }
-
-            var comercio = await _context.Comercios
-                .Include(c => c.Suscripciones)
-                .FirstOrDefaultAsync(c => c.Id == id);
-            var suscripcion = comercio?.Suscripciones
-                .FirstOrDefault(s => s.Id == model.SuscripcionId);
-
-            if (comercio is null || suscripcion is null)
-            {
-                return NotFound();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                model.ComercioNombre = comercio.Nombre;
-                model.Plan = suscripcion.Plan;
-                return View(model);
-            }
-
-            var fechaPago = model.FechaPago.Date;
-            _context.Pagos.Add(new Pago
-            {
-                ComercioId = comercio.Id,
-                SuscripcionId = suscripcion.Id,
-                Monto = model.Monto,
-                FechaPago = fechaPago,
-                Observacion = NormalizarOpcional(model.Observacion)
-            });
-
-            suscripcion.FechaUltimoPago = fechaPago;
-            suscripcion.FechaProximoVencimiento = fechaPago.AddMonths(1);
-            suscripcion.EstadoPago = Suscripcion.EstadoPagoAlDia;
-            suscripcion.Estado = Suscripcion.EstadoActiva;
-
-            if (comercio.EstadoAdministrativo ==
-                Comercio.EstadoPendientePago)
-            {
-                comercio.EstadoAdministrativo = Comercio.EstadoActivo;
-            }
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] =
-                "Pago registrado y suscripción actualizada.";
-            return RedirectToAction(nameof(Details), new { id });
         }
 
         private async Task<(
@@ -437,23 +212,9 @@ namespace Foodsave.Web.Controllers
             var suscripcion = comercio is null
                 ? null
                 : _gestionSuscripciones.ObtenerSuscripcionActual(
-                    comercio.Suscripciones,
-                    DateTime.Today);
+                    comercio.Suscripciones, DateTime.Today);
 
             return (comercio, suscripcion);
-        }
-
-        private static string? NormalizarPlan(string? plan)
-        {
-            return PlanesPermitidos.FirstOrDefault(
-                permitido => permitido.Equals(
-                    plan?.Trim(),
-                    StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static string? NormalizarOpcional(string? value)
-        {
-            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
     }
 }

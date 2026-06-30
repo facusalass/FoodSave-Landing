@@ -2,13 +2,20 @@
     ViewData["Title"] = "Inicio";
 }
 
-<section class="hero-section py-5">
+<section class="hero-section">
     <div class="row align-items-center g-4">
         <div class="col-lg-7">
-            <p class="section-label mb-2">Ofertas del d&iacute;a y Mystery Boxes</p>
-            <h1 class="display-5 fw-semibold mb-3">Reserv&aacute; comida de comercios locales antes de que se desperdicie.</h1>
-            <p class="lead mb-4">
-                FoodSave conecta comercios que tienen excedentes de comida con usuarios que quieren reservar ofertas del d&iacute;a o Mystery Boxes a un precio m&aacute;s accesible.
+            <p class="section-label mb-2">
+                Menos desperdicio, m&aacute;s oportunidades
+            </p>
+            <h1 class="display-5 fw-bold mb-3 lh-sm">
+                Reserv&aacute; comida de comercios locales
+                <span style="color: var(--foodsave-orange);">antes de que se tire.</span>
+            </h1>
+            <p class="lead mb-4" style="max-width: 540px;">
+                FoodSave conecta comercios con excedentes de comida con personas
+                que quieren acceder a ofertas del d&iacute;a o Mystery Boxes a
+                mejor precio. Sin suscripci&oacute;n, sin costo para el usuario.
             </p>
             <div class="hero-cta">
                 <a class="btn btn-primary btn-lg hero-cta-button"
@@ -21,10 +28,65 @@
             </div>
         </div>
         <div class="col-lg-5">
-            <div class="hero-card">
-                <h2 class="h5 mb-3">Una idea simple</h2>
+            <div class="hero-card text-center">
+                <img src="https://res.cloudinary.com/dcasnymut/image/upload/v1782842106/food_pgn_j6iu1q.png"
+                     alt="FoodSave" style="height:80px;margin-bottom:16px;" />
+                <h2 class="h5 mb-2">Una idea simple</h2>
+                <p class="mb-3">
+                    El usuario reserva, coordina el pago por transferencia o
+                    WhatsApp y retira el pedido en el local.
+                </p>
+                <a href="https://wa.me/543624250501"
+                   target="_blank" rel="noopener noreferrer"
+                   class="btn btn-outline-success btn-sm d-inline-flex align-items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    Contactar por WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-4 mt-2">
+    <h2 class="h4 fw-bold">C&oacute;mo funciona</h2>
+    <div class="row g-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="step-card h-100">
+                <span class="step-number">1</span>
+                <h3 class="h6 fw-bold">El comercio publica</h3>
                 <p class="mb-0">
-                    El usuario reserva, coordina el pago por transferencia o WhatsApp y retira el pedido en el local.
+                    Sube una oferta del d&iacute;a o una Mystery Box con la
+                    comida disponible.
+                </p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="step-card h-100">
+                <span class="step-number">2</span>
+                <h3 class="h6 fw-bold">El usuario reserva</h3>
+                <p class="mb-0">
+                    Elige una opci&oacute;n y confirma el pedido desde la app.
+                </p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="step-card h-100">
+                <span class="step-number">3</span>
+                <h3 class="h6 fw-bold">Coordina el pago</h3>
+                <p class="mb-0">
+                    Acuerda directamente con el comercio por WhatsApp la forma
+                    de pago.
+                </p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="step-card h-100">
+                <span class="step-number">4</span>
+                <h3 class="h6 fw-bold">Retira en el local</h3>
+                <p class="mb-0">
+                    Pasa por el comercio y se lleva el pedido ya reservado.
                 </p>
             </div>
         </div>
@@ -32,89 +94,73 @@
 </section>
 
 <section class="py-4">
-    <h2 class="h3 mb-4">C&oacute;mo funciona</h2>
+    <h2 class="h4 fw-bold">Beneficios</h2>
     <div class="row g-3">
-        <div class="col-md-3">
-            <div class="step-card h-100">
-                <span class="step-number">1</span>
-                <h3 class="h6">El comercio publica</h3>
-                <p>Sube una oferta del d&iacute;a o una Mystery Box con comida disponible.</p>
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <h3 class="h5 fw-bold">Menos desperdicio</h3>
+                <p class="mb-0">
+                    Se aprovecha comida que todav&iacute;a est&aacute; en buen
+                    estado y que de otra forma se descartar&iacute;a.
+                </p>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="step-card h-100">
-                <span class="step-number">2</span>
-                <h3 class="h6">El usuario reserva</h3>
-                <p>Elige una opci&oacute;n y deja guardado el pedido para retirarlo.</p>
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <h3 class="h5 fw-bold">M&aacute;s ventas</h3>
+                <p class="mb-0">
+                    Los comercios convierten excedentes en ingresos extra sin
+                    esfuerzo adicional.
+                </p>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="step-card h-100">
-                <span class="step-number">3</span>
-                <h3 class="h6">Avisa por WhatsApp</h3>
-                <p>Coordina el pago o confirma la transferencia con el comercio.</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="step-card h-100">
-                <span class="step-number">4</span>
-                <h3 class="h6">Retira en el local</h3>
-                <p>Pasa por el comercio y se lleva el pedido reservado.</p>
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <h3 class="h5 fw-bold">Mejores precios</h3>
+                <p class="mb-0">
+                    Los usuarios encuentran opciones m&aacute;s accesibles para
+                    comprar comida de calidad.
+                </p>
             </div>
         </div>
     </div>
 </section>
 
 <section class="py-4">
-    <h2 class="h3 mb-4">Beneficios</h2>
-    <div class="row g-3">
-        <div class="col-md-4">
-            <div class="info-card h-100">
-                <h3 class="h5">Menos desperdicio</h3>
-                <p>Se aprovecha comida que todav&iacute;a est&aacute; en buen estado.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="info-card h-100">
-                <h3 class="h5">M&aacute;s ventas</h3>
-                <p>Los comercios pueden vender excedentes en vez de descartarlos.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="info-card h-100">
-                <h3 class="h5">Mejores precios</h3>
-                <p>Los usuarios encuentran opciones m&aacute;s accesibles para comprar comida.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="py-4">
-    <h2 class="h3 mb-4">Planes</h2>
+    <h2 class="h4 fw-bold">Planes para comercios</h2>
     <div class="row g-3">
         <div class="col-md-6">
             <div class="plan-card h-100">
-                <h3 class="h4">Est&aacute;ndar</h3>
+                <h3 class="h4 fw-bold">Est&aacute;ndar</h3>
                 <p class="plan-price">Gratis</p>
-                <p>Para comercios que quieren publicar ofertas de forma simple.</p>
+                <p>Para comercios que quieren empezar a publicar de forma simple.</p>
                 <ul>
                     <li>Publicaci&oacute;n de ofertas del d&iacute;a</li>
-                    <li>Datos del comercio</li>
-                    <li>Contacto por WhatsApp</li>
+                    <li>Perfil del comercio visible</li>
+                    <li>Contacto directo por WhatsApp</li>
                 </ul>
             </div>
         </div>
         <div class="col-md-6">
             <div class="plan-card h-100 plan-card-featured">
-                <h3 class="h4">Pro</h3>
-                <p class="plan-price">Con funciones extra</p>
-                <p>Para comercios que necesitan ordenar mejor sus publicaciones.</p>
+                <h3 class="h4 fw-bold">Pro</h3>
+                <p class="plan-price">Funciones avanzadas</p>
+                <p>Para comercios que quieren sacarle el m&aacute;ximo provecho.</p>
                 <ul>
-                    <li>M&aacute;s ofertas activas</li>
-                    <li>Espacio para Mystery Boxes</li>
-                    <li>Resumen b&aacute;sico de reservas</li>
+                    <li>M&aacute;s ofertas activas al mismo tiempo</li>
+                    <li>Mystery Boxes personalizables</li>
+                    <li>Resumen b&aacute;sico de reservas recibidas</li>
                 </ul>
             </div>
         </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a class="btn btn-primary btn-lg hero-cta-button d-inline-flex mx-auto"
+           asp-controller="SolicitudesComercio"
+           asp-action="Create">
+            Empezar ahora
+            <span aria-hidden="true">&rarr;</span>
+        </a>
     </div>
 </section>

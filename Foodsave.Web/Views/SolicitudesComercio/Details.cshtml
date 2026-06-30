@@ -7,8 +7,8 @@
         Model.TelefonoComercio);
     var statusClass = Model.Estado switch
     {
-        SolicitudComercio.EstadoAceptada => "status-accepted",
-        SolicitudComercio.EstadoRechazada => "status-rejected",
+        EstadoSolicitud.Aceptada => "status-accepted",
+        EstadoSolicitud.Rechazada => "status-rejected",
         _ => "status-pending"
     };
 }
@@ -78,7 +78,7 @@
         <h2 class="h5 mb-3">Información de la solicitud</h2>
         <p class="mb-1">
             <strong>Plan de interés:</strong>
-            @(Model.PlanInteres ?? "No informado")
+            @(Model.PlanInteres?.ToString() ?? "No informado")
         </p>
         <p class="mb-1">
             <strong>Fecha de solicitud:</strong>
@@ -98,7 +98,7 @@
         </p>
     </div>
 
-    @if (Model.Estado == SolicitudComercio.EstadoPendiente)
+    @if (Model.Estado == EstadoSolicitud.Pendiente)
     {
         <div class="admin-card">
             <h2 class="h5 mb-3">Revisar solicitud</h2>
@@ -136,7 +136,7 @@
             </div>
         </div>
     }
-    else if (Model.Estado == SolicitudComercio.EstadoAceptada)
+    else if (Model.Estado == EstadoSolicitud.Aceptada)
     {
         <div class="admin-card">
             <h2 class="h5 mb-2">Solicitud aceptada</h2>

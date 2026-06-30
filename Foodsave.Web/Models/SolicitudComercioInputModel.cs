@@ -52,5 +52,24 @@ namespace Foodsave.Web.Models
             ErrorMessage = "Seleccioná un plan válido.")]
         [Display(Name = "Plan de interés")]
         public string? PlanInteres { get; set; }
+
+        public SolicitudComercio ToEntity()
+        {
+            return new SolicitudComercio
+            {
+                NombreComercio = NombreComercio.Trim(),
+                Rubro = Rubro.Trim(),
+                Direccion = Helpers.TextHelper.NormalizarOpcional(Direccion),
+                TelefonoComercio = TelefonoComercio.Trim(),
+                NombreTitular = NombreTitular.Trim(),
+                ApellidoTitular = Helpers.TextHelper.NormalizarOpcional(ApellidoTitular),
+                TelefonoTitular = Helpers.TextHelper.NormalizarOpcional(TelefonoTitular),
+                EmailTitular = EmailTitular.Trim().ToLowerInvariant(),
+                Mensaje = Helpers.TextHelper.NormalizarOpcional(Mensaje),
+                PlanInteres = Helpers.PlanHelper.ParsePlan(PlanInteres),
+                Estado = EstadoSolicitud.Pendiente,
+                FechaSolicitud = DateTime.UtcNow
+            };
+        }
     }
 }

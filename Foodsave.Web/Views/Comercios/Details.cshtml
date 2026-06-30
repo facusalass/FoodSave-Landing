@@ -6,14 +6,14 @@
     var suscripcion = Model.SuscripcionActual;
     var comercioStatusClass = comercio.EstadoAdministrativo switch
     {
-        Comercio.EstadoActivo => "status-accepted",
-        Comercio.EstadoInhabilitado => "status-rejected",
+        EstadoAdministrativo.Activo => "status-accepted",
+        EstadoAdministrativo.Inhabilitado => "status-rejected",
         _ => "status-pending"
     };
     var pagoStatusClass = Model.EstadoPagoEfectivo switch
     {
-        Suscripcion.EstadoPagoAlDia => "status-accepted",
-        Suscripcion.EstadoPagoVencido => "status-rejected",
+        EstadoPagoSuscripcion.AlDia => "status-accepted",
+        EstadoPagoSuscripcion.Vencido => "status-rejected",
         _ => "status-pending"
     };
 }
@@ -78,7 +78,7 @@
     <div class="admin-card mb-4">
         <h2 class="h5 mb-3">Estado administrativo</h2>
         <div class="d-flex flex-wrap gap-2">
-            @if (comercio.EstadoAdministrativo == Comercio.EstadoInhabilitado)
+            @if (comercio.EstadoAdministrativo == EstadoAdministrativo.Inhabilitado)
             {
                 <form asp-action="Reactivar"
                       asp-route-id="@comercio.Id"
@@ -144,11 +144,11 @@
                         <label for="plan" class="form-label">Plan</label>
                         <select id="plan" name="Plan" class="form-select">
                             <option value="Estandar"
-                                    selected="@(suscripcion.Plan == "Estandar")">
+                                    selected="@(suscripcion.Plan == PlanSuscripcion.Estandar)">
                                 Estándar
                             </option>
                             <option value="Pro"
-                                    selected="@(suscripcion.Plan == "Pro")">
+                                    selected="@(suscripcion.Plan == PlanSuscripcion.Pro)">
                                 Pro
                             </option>
                         </select>
