@@ -188,6 +188,8 @@ namespace Foodsave.Web.Data
                 // Subscripciones Pendiente del modelo viejo (renovación futura) → Cancelar
                 if (suscripcion.Estado == EstadoSuscripcion.Pendiente)
                 {
+                    if (suscripcion.FechaInicio > hoy)
+                        suscripcion.FechaInicio = hoy;
                     suscripcion.Estado = EstadoSuscripcion.Cancelada;
                     suscripcion.FechaFin = hoy;
                     cambios = true;

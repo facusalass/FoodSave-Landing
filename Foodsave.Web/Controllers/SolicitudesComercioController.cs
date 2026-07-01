@@ -25,6 +25,10 @@ namespace Foodsave.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            ViewData["Breadcrumb"] = new (string, string?, string?)[]
+            {
+                ("Solicitudes", null, null)
+            };
             var solicitudes = await _context.SolicitudesComercio
                 .OrderBy(s => s.Estado != EstadoSolicitud.Pendiente)
                 .ThenByDescending(s => s.FechaSolicitud)
@@ -35,6 +39,11 @@ namespace Foodsave.Web.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
+            ViewData["Breadcrumb"] = new (string, string?, string?)[]
+            {
+                ("Solicitudes", "Index", "SolicitudesComercio"),
+                ("Detalle", null, null)
+            };
             var solicitud = await _context.SolicitudesComercio.FindAsync(id);
             return solicitud is null ? NotFound() : View(solicitud);
         }

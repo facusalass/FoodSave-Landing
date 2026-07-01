@@ -65,6 +65,11 @@ namespace Foodsave.Web.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            ViewData["Breadcrumb"] = new (string, string?, string?)[]
+            {
+                ("Comercios", "Index", "Comercios"),
+                ("Inscribir", null, null)
+            };
             return View(new Comercio());
         }
 
@@ -182,6 +187,13 @@ namespace Foodsave.Web.Controllers
 
             if (comercio is null)
                 return NotFound();
+
+            ViewData["Breadcrumb"] = new (string, string?, string?)[]
+            {
+                ("Comercios", "Index", "Comercios"),
+                (comercio.Nombre, "Details", "Comercios"),
+                ("Detalle", null, null)
+            };
 
             comercio.Suscripciones = comercio.Suscripciones
                 .OrderByDescending(s => s.FechaInicio)

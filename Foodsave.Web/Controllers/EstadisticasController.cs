@@ -17,6 +17,10 @@ namespace Foodsave.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            ViewData["Breadcrumb"] = new (string, string?, string?)[]
+            {
+                ("Estadísticas", null, null)
+            };
             var model = await _estadisticasService.ObtenerEstadisticasAsync();
             return View(model);
         }

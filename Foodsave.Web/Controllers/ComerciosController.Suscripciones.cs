@@ -24,6 +24,13 @@ namespace Foodsave.Web.Controllers
             if (comercio is null)
                 return NotFound();
 
+            ViewData["Breadcrumb"] = new (string, string?, string?)[]
+            {
+                ("Comercios", "Index", "Comercios"),
+                (comercio.Nombre, "Details", "Comercios"),
+                ("Suscripciones", null, null)
+            };
+
             comercio.Suscripciones = comercio.Suscripciones
                 .OrderByDescending(s => s.FechaInicio)
                 .ToList();
@@ -93,7 +100,10 @@ namespace Foodsave.Web.Controllers
                 return NotFound();
 
             suscripcion.Estado = EstadoSuscripcion.Cancelada;
-            suscripcion.FechaFin = DateTime.Today;
+            var hoy = DateTime.Today;
+            suscripcion.FechaFin = hoy;
+            if (suscripcion.FechaInicio > hoy)
+                suscripcion.FechaInicio = hoy;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Suscripción cancelada: Id={SusId}", suscripcionId);
@@ -148,6 +158,12 @@ namespace Foodsave.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> RegistrarPago(int id)
         {
+            ViewData["Breadcrumb"] = new (string, string?, string?)[]
+            {
+                ("Comercios", "Index", "Comercios"),
+                ("Registrar pago", null, null)
+            };
+
             var comercio = await _registroPagoService
                 .ObtenerComercioConSuscripcionesAsync(id);
             if (comercio is null) return NotFound();
