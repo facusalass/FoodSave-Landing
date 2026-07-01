@@ -170,58 +170,86 @@ namespace Foodsave.Web.Data
         {
             var hoy = DateTime.Today;
 
+            var necesitaNormalizacion = context.Suscripciones.Any(s =>
+                s.MontoMensual == 0 ||
+                s.Estado == EstadoSuscripcion.Pendiente ||
+                (s.Estado == EstadoSuscripcion.Cancelada &&
+                    (s.FechaInicio > hoy ||
+                     (s.FechaFin != null && s.FechaFin.Value > hoy))) ||
+                (s.Estado == EstadoSuscripcion.Activa &&
+                    (s.FechaFin != null ||
+                     (s.FechaProximoVencimiento - hoy).Days > 60)));
+
+            if (!necesitaNormalizacion)
+                return;
+
             var suscripciones = context.Suscripciones
                 .Include(s => s.Comercio)
                 .ToList();
 
             var cambios = false;
 
-            foreach (var suscripcion in suscripciones)
+            // Agrupar por comercio para consistencia entre cancelada y activa
+            foreach (var grupo in suscripciones.GroupBy(s => s.ComercioId))
             {
-                // Subscripciones del modelo viejo (MontoMensual = 0) actualizar a 20000
-                if (suscripcion.MontoMensual == 0 && suscripcion.Comercio is not null)
-                {
-                    suscripcion.MontoMensual = 20000m;
-                    cambios = true;
-                }
+                var activa = grupo.FirstOrDefault(s => s.Estado == EstadoSuscripcion.Activa);
+                var fechaAnterior = activa?.FechaInicio.AddDays(-1) ?? hoy;
 
-                // Subscripciones Pendiente del modelo viejo (renovación futura) → Cancelar
-                if (suscripcion.Estado == EstadoSuscripcion.Pendiente)
+                foreach (var suscripcion in grupo)
                 {
-                    if (suscripcion.FechaInicio > hoy)
-                        suscripcion.FechaInicio = hoy;
-                    suscripcion.Estado = EstadoSuscripcion.Cancelada;
-                    suscripcion.FechaFin = hoy;
-                    cambios = true;
-                }
+                    // MontoMensual 0 → 20000
+                    if (suscripcion.MontoMensual == 0)
+                    {
+                        suscripcion.MontoMensual = 20000m;
+                        cambios = true;
+                    }
 
-                // Subscripciones Canceladas con FechaInicio futura (de normalización anterior sin Fix) → corregir
-                if (suscripcion.Estado == EstadoSuscripcion.Cancelada && suscripcion.FechaInicio > hoy)
-                {
-                    suscripcion.FechaInicio = hoy;
-                    cambios = true;
-                }
+                    // Pendiente del modelo viejo → Cancelada
+                    if (suscripcion.Estado == EstadoSuscripcion.Pendiente)
+                    {
+                        suscripcion.Estado = EstadoSuscripcion.Cancelada;
+                        suscripcion.FechaFin = fechaAnterior;
+                        if (suscripcion.FechaInicio > fechaAnterior)
+                            suscripcion.FechaInicio = fechaAnterior;
+                        cambios = true;
+                    }
 
-                // Subscripciones Activas con FechaFin no null → null (mes a mes)
-                if (suscripcion.Estado == EstadoSuscripcion.Activa && suscripcion.FechaFin is not null)
-                {
-                    suscripcion.FechaFin = null;
-                    cambios = true;
-                }
+                    // Cancelada con FechaInicio futura → corregir
+                    if (suscripcion.Estado == EstadoSuscripcion.Cancelada &&
+                        suscripcion.FechaInicio > fechaAnterior)
+                    {
+                        suscripcion.FechaInicio = fechaAnterior;
+                        cambios = true;
+                    }
 
-                // Subscripciones Activas con FechaProximoVencimiento > hoy + 60 (modelo viejo de 6 meses)
-                if (suscripcion.Estado == EstadoSuscripcion.Activa &&
-                    (suscripcion.FechaProximoVencimiento - hoy).Days > 60)
-                {
-                    suscripcion.FechaProximoVencimiento = hoy.AddDays(30);
-                    cambios = true;
+                    // Cancelada con FechaFin futura → corregir
+                    if (suscripcion.Estado == EstadoSuscripcion.Cancelada &&
+                        suscripcion.FechaFin is not null &&
+                        suscripcion.FechaFin.Value > fechaAnterior)
+                    {
+                        suscripcion.FechaFin = fechaAnterior;
+                        cambios = true;
+                    }
+
+                    // Activa con FechaFin no null → null
+                    if (suscripcion.Estado == EstadoSuscripcion.Activa && suscripcion.FechaFin is not null)
+                    {
+                        suscripcion.FechaFin = null;
+                        cambios = true;
+                    }
+
+                    // Activa con FechaProximoVencimiento > 60 días (modelo 6 meses)
+                    if (suscripcion.Estado == EstadoSuscripcion.Activa &&
+                        (suscripcion.FechaProximoVencimiento - hoy).Days > 60)
+                    {
+                        suscripcion.FechaProximoVencimiento = hoy.AddDays(30);
+                        cambios = true;
+                    }
                 }
             }
 
             if (cambios)
-            {
                 context.SaveChanges();
-            }
         }
 
         private static void AgregarPagosSemilla(ApplicationDbContext context)

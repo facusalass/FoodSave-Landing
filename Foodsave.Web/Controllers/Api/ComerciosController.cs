@@ -12,6 +12,7 @@ namespace Foodsave.Web.Controllers.Api
     [ApiController]
     [Route("api/comercios")]
     [Produces("application/json")]
+    [IgnoreAntiforgeryToken]
     public class ApiComerciosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -92,9 +93,9 @@ namespace Foodsave.Web.Controllers.Api
                         Plan = PlanSuscripcion.Estandar,
                         Estado = EstadoSuscripcion.Activa,
                         FechaInicio = hoy,
-                        FechaFin = hoy.AddMonths(1),
-                        MontoMensual = 0,
-                        FechaProximoVencimiento = hoy,
+                        FechaFin = null,
+                        MontoMensual = 20000m,
+                        FechaProximoVencimiento = hoy.AddDays(30),
                         EstadoPago = EstadoPagoSuscripcion.Pendiente
                     }
                 }

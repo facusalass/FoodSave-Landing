@@ -154,7 +154,7 @@
                         <th>Estado</th>
                         <th>Pago</th>
                         <th>Monto</th>
-                        <th>Inicio</th>
+                        <th>Fin</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -189,7 +189,7 @@
                                 </td>
                                 <td>@item.EstadoPago</td>
                                 <td>@item.MontoMensual.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("es-AR"))</td>
-                                <td>@item.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                <td>@(item.FechaFin?.ToString("dd/MM/yyyy") ?? "—")</td>
                             </tr>
                         }
                     }

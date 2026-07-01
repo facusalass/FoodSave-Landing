@@ -9,6 +9,7 @@ namespace Foodsave.Web.Controllers.Api
     [ApiController]
     [Route("api/estadisticas")]
     [Produces("application/json")]
+    [IgnoreAntiforgeryToken]
     public class ApiEstadisticasController : ControllerBase
     {
         private readonly EstadisticasService _estadisticasService;

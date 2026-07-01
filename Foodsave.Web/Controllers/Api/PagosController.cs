@@ -11,6 +11,7 @@ namespace Foodsave.Web.Controllers.Api
     [ApiController]
     [Route("api/pagos")]
     [Produces("application/json")]
+    [IgnoreAntiforgeryToken]
     public class PagosController : ControllerBase
     {
         private readonly RegistroPagoService _registroPagoService;

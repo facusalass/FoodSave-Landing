@@ -174,6 +174,63 @@ namespace Foodsave.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Editar(int id)
+        {
+            var comercio = await _context.Comercios
+                .Include(c => c.Titular)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (comercio is null) return NotFound();
+
+            ViewData["Breadcrumb"] = new (string, string?, string?)[]
+            {
+                ("Comercios", "Index", "Comercios"),
+                (comercio.Nombre, "Details", "Comercios"),
+                ("Editar", null, null)
+            };
+
+            return View(new ComercioEditarInputModel
+            {
+                Nombre = comercio.Nombre,
+                Rubro = comercio.Rubro,
+                Direccion = comercio.Direccion,
+                Telefono = comercio.Telefono,
+                TitularNombre = comercio.Titular.Nombre,
+                TitularApellido = comercio.Titular.Apellido,
+                TitularEmail = comercio.Titular.Email,
+                TitularTelefono = comercio.Titular.Telefono
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Editar(int id, ComercioEditarInputModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var comercio = await _context.Comercios
+                .Include(c => c.Titular)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (comercio is null) return NotFound();
+
+            comercio.Nombre = model.Nombre.Trim();
+            comercio.Rubro = model.Rubro.Trim();
+            comercio.Direccion = model.Direccion.Trim();
+            comercio.Telefono = model.Telefono.Trim();
+            comercio.Titular.Nombre = model.TitularNombre.Trim();
+            comercio.Titular.Apellido = model.TitularApellido.Trim();
+            comercio.Titular.Email = model.TitularEmail.Trim().ToLowerInvariant();
+            comercio.Titular.Telefono = (model.TitularTelefono ?? "").Trim();
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Comercio editado: Id={Id}, Nombre={Nombre}", id, comercio.Nombre);
+            TempData["Success"] = "Comercio actualizado.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         private async Task<IActionResult> DetailsView(int id)
         {
             var comercio = await _context.Comercios

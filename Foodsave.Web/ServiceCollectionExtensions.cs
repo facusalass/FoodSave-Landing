@@ -76,10 +76,20 @@ namespace Foodsave.Web
             services.AddRateLimiter(options =>
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
                 options.AddFixedWindowLimiter("SolicitudForm", config =>
                 {
                     config.PermitLimit = 5;
                     config.Window = TimeSpan.FromMinutes(10);
+                    config.QueueProcessingOrder =
+                        QueueProcessingOrder.OldestFirst;
+                    config.QueueLimit = 0;
+                });
+
+                options.AddFixedWindowLimiter("Login", config =>
+                {
+                    config.PermitLimit = 5;
+                    config.Window = TimeSpan.FromMinutes(15);
                     config.QueueProcessingOrder =
                         QueueProcessingOrder.OldestFirst;
                     config.QueueLimit = 0;

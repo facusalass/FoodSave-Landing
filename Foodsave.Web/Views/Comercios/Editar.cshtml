@@ -1,0 +1,85 @@
+@model Foodsave.Web.Models.ComercioEditarInputModel
+
+@{
+    ViewData["Title"] = "Editar comercio";
+}
+
+<section class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-2">Editar comercio</h1>
+            <p class="lead mb-0">Modificá los datos del comercio y su titular.</p>
+        </div>
+        <a class="btn btn-outline-primary align-self-md-start"
+           asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]">
+            Volver al comercio
+        </a>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">Corregí los errores antes de guardar.</div>
+    }
+
+    <div class="admin-card" style="max-width: 800px;">
+        <form asp-action="Editar" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
+            <h2 class="h5 mb-3">Comercio</h2>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="Nombre" class="form-label"></label>
+                    <input asp-for="Nombre" class="form-control" />
+                    <span asp-validation-for="Nombre" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Rubro" class="form-label"></label>
+                    <input asp-for="Rubro" class="form-control" />
+                    <span asp-validation-for="Rubro" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Direccion" class="form-label"></label>
+                    <input asp-for="Direccion" class="form-control" />
+                    <span asp-validation-for="Direccion" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Telefono" class="form-label"></label>
+                    <input asp-for="Telefono" class="form-control" />
+                    <span asp-validation-for="Telefono" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <h2 class="h5 mb-3">Titular</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="TitularNombre" class="form-label"></label>
+                    <input asp-for="TitularNombre" class="form-control" />
+                    <span asp-validation-for="TitularNombre" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TitularApellido" class="form-label"></label>
+                    <input asp-for="TitularApellido" class="form-control" />
+                    <span asp-validation-for="TitularApellido" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TitularEmail" class="form-label"></label>
+                    <input asp-for="TitularEmail" class="form-control" />
+                    <span asp-validation-for="TitularEmail" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TitularTelefono" class="form-label"></label>
+                    <input asp-for="TitularTelefono" class="form-control" />
+                    <span asp-validation-for="TitularTelefono" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <a class="btn btn-outline-secondary ms-2"
+                   asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -67,6 +67,10 @@ namespace Foodsave.Web.Models
     {
         public static ComercioDto ToDto(this Comercio comercio)
         {
+            if (comercio.Titular is null)
+                throw new InvalidOperationException(
+                    $"Titular no cargado para Comercio {comercio.Id}. Usar .Include(c => c.Titular).");
+
             return new ComercioDto
             {
                 Id = comercio.Id,

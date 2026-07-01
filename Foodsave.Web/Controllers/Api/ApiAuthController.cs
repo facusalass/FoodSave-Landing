@@ -2,12 +2,14 @@ using Foodsave.Web.Models;
 using Foodsave.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Foodsave.Web.Controllers.Api
 {
     [ApiController]
     [Route("api/auth")]
     [Produces("application/json")]
+    [IgnoreAntiforgeryToken]
     public class ApiAuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -23,6 +25,7 @@ namespace Foodsave.Web.Controllers.Api
 
         [AllowAnonymous]
         [HttpPost("login")]
+        [EnableRateLimiting("Login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginViewModel model)

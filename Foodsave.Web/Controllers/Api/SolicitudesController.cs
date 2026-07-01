@@ -12,6 +12,7 @@ namespace Foodsave.Web.Controllers.Api
     [ApiController]
     [Route("api/solicitudes")]
     [Produces("application/json")]
+    [IgnoreAntiforgeryToken]
     public class SolicitudesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -83,7 +84,8 @@ namespace Foodsave.Web.Controllers.Api
             int id,
             [FromBody] ReviewSolicitudInput model)
         {
-            if (!Enum.TryParse<EstadoSolicitud>(model.Estado, out var estado))
+            if (!Enum.TryParse<EstadoSolicitud>(model.Estado, out var estado) ||
+                (estado != EstadoSolicitud.Aceptada && estado != EstadoSolicitud.Rechazada))
                 return BadRequest(ApiError.BadRequest(
                     "Estado inválido. Usar: Aceptada, Rechazada."));
 
