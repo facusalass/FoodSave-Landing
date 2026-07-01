@@ -209,10 +209,12 @@
                     else
                     {
                         <tr>
-                            <td colspan="4" class="text-center" style="padding:40px 20px;">
-                                <span class="empty-state-icon">📅</span>
-                                <p class="text-muted mb-3">Todavía no hay pagos registrados.</p>
-                                <a class="btn btn-primary btn-sm" asp-action="RegistrarPago" asp-route-id="@comercio.Id">Registrar primer pago</a>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                Todavía no hay pagos registrados.
+                                <a class="btn btn-link btn-sm p-0 ms-2 align-baseline"
+                                   asp-action="RegistrarPago" asp-route-id="@comercio.Id">
+                                    Registrar primer pago
+                                </a>
                             </td>
                         </tr>
                     }

@@ -195,6 +195,13 @@ namespace Foodsave.Web.Data
                     cambios = true;
                 }
 
+                // Subscripciones Canceladas con FechaInicio futura (de normalización anterior sin Fix) → corregir
+                if (suscripcion.Estado == EstadoSuscripcion.Cancelada && suscripcion.FechaInicio > hoy)
+                {
+                    suscripcion.FechaInicio = hoy;
+                    cambios = true;
+                }
+
                 // Subscripciones Activas con FechaFin no null → null (mes a mes)
                 if (suscripcion.Estado == EstadoSuscripcion.Activa && suscripcion.FechaFin is not null)
                 {
