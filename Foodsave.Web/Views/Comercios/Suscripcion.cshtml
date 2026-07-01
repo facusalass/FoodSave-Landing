@@ -157,11 +157,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (comercio.Suscripciones.Any())
+                    @{
+                        var historiales = comercio.Suscripciones
+                        .Where(s => s.Estado == EstadoSuscripcion.Vencida ||
+                                    s.Estado == EstadoSuscripcion.Cancelada ||
+                                    (s.Estado == EstadoSuscripcion.Activa && suscripcion != null && s.Id != suscripcion.Id))
+                        .ToList();
+                    }
+                    @if (historiales.Any())
                     {
-                        foreach (var item in comercio.Suscripciones)
+                        foreach (var item in historiales)
                         {
-                            var rowClass = item.Estado == EstadoSuscripcion.Cancelada ? "text-muted" : "";
+                            var rowClass = (item.Estado == EstadoSuscripcion.Cancelada ||
+                                           item.Estado == EstadoSuscripcion.Vencida) ? "text-muted" : "";
                             <tr class="@rowClass">
                                 <td>@item.Plan</td>
                                 <td>
@@ -173,13 +181,9 @@
                                     {
                                         <span class="status-badge status-rejected">Vencida</span>
                                     }
-                                    else if (item.Estado == EstadoSuscripcion.Pendiente)
-                                    {
-                                        <span class="status-badge status-pending">Pendiente</span>
-                                    }
                                     else
                                     {
-                                        <span class="status-badge status-accepted">Activa</span>
+                                        <span class="status-badge status-accepted">Activa (anterior)</span>
                                     }
                                 </td>
                                 <td>@item.EstadoPago</td>
@@ -192,7 +196,7 @@
                     {
                         <tr>
                             <td colspan="5" class="text-center text-muted py-4">
-                                Sin historial de suscripciones.
+                                Sin historial de suscripciones vencidas o canceladas.
                             </td>
                         </tr>
                     }

@@ -162,6 +162,57 @@ namespace Foodsave.Web.Data
                 AgregarPagosSemilla(context);
                 AgregarSolicitudesSemilla(context);
             }
+
+            NormalizarDatosExistentes(context);
+        }
+
+        private static void NormalizarDatosExistentes(ApplicationDbContext context)
+        {
+            var hoy = DateTime.Today;
+
+            var suscripciones = context.Suscripciones
+                .Include(s => s.Comercio)
+                .ToList();
+
+            var cambios = false;
+
+            foreach (var suscripcion in suscripciones)
+            {
+                // Subscripciones del modelo viejo (MontoMensual = 0) actualizar a 20000
+                if (suscripcion.MontoMensual == 0 && suscripcion.Comercio is not null)
+                {
+                    suscripcion.MontoMensual = 20000m;
+                    cambios = true;
+                }
+
+                // Subscripciones Pendiente del modelo viejo (renovación futura) → Cancelar
+                if (suscripcion.Estado == EstadoSuscripcion.Pendiente)
+                {
+                    suscripcion.Estado = EstadoSuscripcion.Cancelada;
+                    suscripcion.FechaFin = hoy;
+                    cambios = true;
+                }
+
+                // Subscripciones Activas con FechaFin no null → null (mes a mes)
+                if (suscripcion.Estado == EstadoSuscripcion.Activa && suscripcion.FechaFin is not null)
+                {
+                    suscripcion.FechaFin = null;
+                    cambios = true;
+                }
+
+                // Subscripciones Activas con FechaProximoVencimiento > hoy + 60 (modelo viejo de 6 meses)
+                if (suscripcion.Estado == EstadoSuscripcion.Activa &&
+                    (suscripcion.FechaProximoVencimiento - hoy).Days > 60)
+                {
+                    suscripcion.FechaProximoVencimiento = hoy.AddDays(30);
+                    cambios = true;
+                }
+            }
+
+            if (cambios)
+            {
+                context.SaveChanges();
+            }
         }
 
         private static void AgregarPagosSemilla(ApplicationDbContext context)
