@@ -61,7 +61,6 @@ namespace Foodsave.Web
             }
 
             app.UseForwardedHeaders();
-            app.UseRateLimiter();
 
             if (app.Environment.IsDevelopment())
             {
@@ -80,6 +79,7 @@ namespace Foodsave.Web
 
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseRateLimiter();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapStaticAssets();

@@ -158,30 +158,16 @@ namespace Foodsave.Web.Data
             {
                 context.Comercios.AddRange(comerciosFaltantes);
                 context.SaveChanges();
-
-                AgregarPagosSemilla(context);
-                AgregarSolicitudesSemilla(context);
             }
 
             NormalizarDatosExistentes(context);
+            AgregarPagosSemilla(context);
+            AgregarSolicitudesSemilla(context);
         }
 
         private static void NormalizarDatosExistentes(ApplicationDbContext context)
         {
             var hoy = DateTime.Today;
-
-            var necesitaNormalizacion = context.Suscripciones.Any(s =>
-                s.MontoMensual == 0 ||
-                s.Estado == EstadoSuscripcion.Pendiente ||
-                (s.Estado == EstadoSuscripcion.Cancelada &&
-                    (s.FechaInicio > hoy ||
-                     (s.FechaFin != null && s.FechaFin.Value > hoy))) ||
-                (s.Estado == EstadoSuscripcion.Activa &&
-                    (s.FechaFin != null ||
-                     (s.FechaProximoVencimiento - hoy).Days > 60)));
-
-            if (!necesitaNormalizacion)
-                return;
 
             var suscripciones = context.Suscripciones
                 .Include(s => s.Comercio)
@@ -254,8 +240,28 @@ namespace Foodsave.Web.Data
 
         private static void AgregarPagosSemilla(ApplicationDbContext context)
         {
-            if (context.Pagos.Any())
+            var pagosExistentes = context.Pagos.ToList();
+
+            if (pagosExistentes.Count > 0)
+            {
+                // Actualizar pagos viejos con Monto = 0 al MontoMensual de la suscripción
+                var cambios = false;
+                foreach (var pago in pagosExistentes)
+                {
+                    if (pago.Monto == 0)
+                    {
+                        var suscripcion = context.Suscripciones.Find(pago.SuscripcionId);
+                        if (suscripcion is not null && suscripcion.MontoMensual > 0)
+                        {
+                            pago.Monto = suscripcion.MontoMensual;
+                            cambios = true;
+                        }
+                    }
+                }
+                if (cambios)
+                    context.SaveChanges();
                 return;
+            }
 
             var suscripciones = context.Suscripciones
                 .Include(s => s.Comercio)
@@ -300,10 +306,9 @@ namespace Foodsave.Web.Data
                 {
                     suscripcion.FechaUltimoPago = ultimoPago;
                     suscripcion.FechaProximoVencimiento = ultimoPago.Value.AddDays(30);
+                    context.SaveChanges();
                 }
             }
-
-            context.SaveChanges();
         }
 
         private static void AgregarSolicitudesSemilla(ApplicationDbContext context)

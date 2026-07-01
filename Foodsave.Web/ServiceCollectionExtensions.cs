@@ -76,6 +76,26 @@ namespace Foodsave.Web
             services.AddRateLimiter(options =>
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.OnRejected = async (context, ct) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    if (context.HttpContext.Request.Path.StartsWithSegments("/api"))
+                    {
+                        context.HttpContext.Response.ContentType = "application/json";
+                        await context.HttpContext.Response.WriteAsync(
+                            "{\"error\":\"Demasiados intentos. Esperá 15 minutos.\"}", ct);
+                    }
+                    else
+                    {
+                        context.HttpContext.Response.ContentType = "text/html; charset=utf-8";
+                        await context.HttpContext.Response.WriteAsync(
+                            "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"utf-8\"/></head>" +
+                            "<body style=\"font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fcf9f6;\">" +
+                            "<div style=\"text-align:center;padding:40px;\"><h2 style=\"color:#e85c2c;\">Demasiados intentos</h2>" +
+                            "<p>Esperá 15 minutos antes de intentar de nuevo.</p>" +
+                            "<a href=\"/\" style=\"color:#FF6B35;\">Volver al inicio</a></div></body></html>", ct);
+                    }
+                };
 
                 options.AddFixedWindowLimiter("SolicitudForm", config =>
                 {

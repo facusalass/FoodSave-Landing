@@ -203,7 +203,6 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Inicializar tooltips de Bootstrap
         document.addEventListener('DOMContentLoaded', function () {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (el) {
@@ -211,17 +210,27 @@
             });
         });
 
-        // Spinner en submits
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('form').forEach(function (form) {
                 form.addEventListener('submit', function () {
                     var btn = this.querySelector('button[type="submit"]');
-                    if (btn && !btn.disabled) {
-                        var orig = btn.textContent;
-                        btn.disabled = true;
-                        btn.setAttribute('data-orig-text', orig);
-                        btn.innerHTML = '<span class="spinner-dot"></span> ' + (orig.length < 12 ? 'Guardando…' : 'Enviando…');
-                    }
+                    if (!btn || btn.disabled) return;
+
+                    var $form = typeof $ !== 'undefined' ? $(this) : null;
+                    if ($form && $form.data('validator') && !$form.valid()) return;
+                    if (!this.checkValidity()) return;
+
+                    var orig = btn.textContent.trim();
+                    btn.disabled = true;
+                    btn.setAttribute('data-orig-text', orig);
+                    btn.innerHTML = '<span class="spinner-dot"></span> ' + (orig.length < 12 ? 'Guardando…' : 'Enviando…');
+
+                    setTimeout(function () {
+                        if (btn.disabled) {
+                            btn.disabled = false;
+                            btn.innerHTML = btn.getAttribute('data-orig-text') || orig;
+                        }
+                    }, 8000);
                 });
             });
         });
