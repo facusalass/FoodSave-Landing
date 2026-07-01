@@ -98,8 +98,10 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                Todavía no hay comercios cargados.
+                            <td colspan="7" class="text-center" style="padding:48px 20px;">
+                                <span class="empty-state-icon">📋</span>
+                                <p class="text-muted mb-3">Todavía no hay comercios cargados.</p>
+                                <a class="btn btn-primary btn-sm" asp-action="Create">Inscribir el primero</a>
                             </td>
                         </tr>
                     }

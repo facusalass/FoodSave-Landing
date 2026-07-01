@@ -30,7 +30,7 @@ namespace Foodsave.Web.Models
         public string EstadoPago { get; set; } = string.Empty;
         public decimal MontoMensual { get; set; }
         public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }
+        public DateTime? FechaFin { get; set; }
         public DateTime? FechaUltimoPago { get; set; }
         public DateTime FechaProximoVencimiento { get; set; }
     }

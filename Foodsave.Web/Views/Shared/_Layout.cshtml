@@ -28,21 +28,28 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav ms-auto align-items-sm-center gap-sm-1">
+                        @{
+                            var active = ViewData["ActivePage"] as string;
+                        }
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link @(active == "Home" ? "active" : "")"
+                               asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="SolicitudesComercio"
+                                <a class="nav-link @(active == "Solicitudes" ? "active" : "")"
+                                   asp-controller="SolicitudesComercio"
                                    asp-action="Index">Solicitudes</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Comercios"
+                                <a class="nav-link @(active == "Comercios" ? "active" : "")"
+                                   asp-controller="Comercios"
                                    asp-action="Index">Comercios</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Estadisticas"
+                                <a class="nav-link @(active == "Estadisticas" ? "active" : "")"
+                                   asp-controller="Estadisticas"
                                    asp-action="Index">Estadísticas</a>
                             </li>
                             <li class="nav-item d-none d-sm-block">
@@ -62,7 +69,8 @@
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="SolicitudesComercio"
+                                <a class="nav-link"
+                                   asp-controller="SolicitudesComercio"
                                    asp-action="Create">Sumar mi comercio</a>
                             </li>
                             <li class="nav-item ms-sm-1">
@@ -77,6 +85,30 @@
             </div>
         </nav>
     </header>
+
+    @{
+        var breadcrumb = ViewData["Breadcrumb"] as (string Label, string? Action, string? Controller)[];
+    }
+    @if (breadcrumb is { Length: > 0 })
+    {
+        <div class="container">
+            <nav class="foodsave-breadcrumb" aria-label="breadcrumb">
+                @for (int i = 0; i < breadcrumb.Length; i++)
+                {
+                    var item = breadcrumb[i];
+                    if (i < breadcrumb.Length - 1)
+                    {
+                        <a asp-controller="@item.Controller" asp-action="@item.Action">@item.Label</a>
+                        <span class="breadcrumb-sep">›</span>
+                    }
+                    else
+                    {
+                        <span>@item.Label</span>
+                    }
+                }
+            </nav>
+        </div>
+    }
 
     <div class="page-content">
         <div class="container">
@@ -170,6 +202,30 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Inicializar tooltips de Bootstrap
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (el) {
+                return new bootstrap.Tooltip(el);
+            });
+        });
+
+        // Spinner en submits
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form').forEach(function (form) {
+                form.addEventListener('submit', function () {
+                    var btn = this.querySelector('button[type="submit"]');
+                    if (btn && !btn.disabled) {
+                        var orig = btn.textContent;
+                        btn.disabled = true;
+                        btn.setAttribute('data-orig-text', orig);
+                        btn.innerHTML = '<span class="spinner-dot"></span> ' + (orig.length < 12 ? 'Guardando…' : 'Enviando…');
+                    }
+                });
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

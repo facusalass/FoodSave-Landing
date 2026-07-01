@@ -9,10 +9,14 @@ namespace Foodsave.Web.Services
             DateTime fecha)
         {
             var dia = fecha.Date;
-            var lista = suscripciones.ToList();
+            var lista = suscripciones
+                .Where(s => s.Estado != EstadoSuscripcion.Cancelada)
+                .ToList();
 
+            // null = activa sin fecha de fin (servicio mes a mes)
             return lista
-                .Where(s => s.FechaInicio.Date <= dia && s.FechaFin.Date >= dia)
+                .Where(s => s.FechaInicio.Date <= dia &&
+                            (s.FechaFin == null || s.FechaFin.Value.Date >= dia))
                 .OrderByDescending(s => s.FechaInicio)
                 .FirstOrDefault()
                 ?? lista

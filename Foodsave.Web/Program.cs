@@ -13,7 +13,9 @@ namespace Foodsave.Web
             var port = Environment.GetEnvironmentVariable("PORT");
             if (!string.IsNullOrWhiteSpace(port))
             {
-                builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+                if (!int.TryParse(port, out var portNumber) || portNumber < 1 || portNumber > 65535)
+                    throw new InvalidOperationException($"PORT inválido: '{port}'. Debe ser un número entre 1 y 65535.");
+                builder.WebHost.UseUrls($"http://0.0.0.0:{portNumber}");
             }
 
             builder.Services
@@ -70,6 +72,9 @@ namespace Foodsave.Web
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseWhen(
+                    ctx => !ctx.Request.Path.StartsWithSegments("/api"),
+                    pipeline => pipeline.UseStatusCodePagesWithReExecute("/404"));
                 app.UseHsts();
             }
 

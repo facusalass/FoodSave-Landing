@@ -13,7 +13,7 @@ namespace Foodsave.Web.Models
         public EstadoSuscripcion Estado { get; set; }
 
         public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }
+        public DateTime? FechaFin { get; set; }
 
         public decimal MontoMensual { get; set; }
         public DateTime? FechaUltimoPago { get; set; }

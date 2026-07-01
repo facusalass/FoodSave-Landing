@@ -12,6 +12,7 @@ namespace Foodsave.Web.Controllers
         public EstadisticasController(EstadisticasService estadisticasService)
         {
             _estadisticasService = estadisticasService;
+            ViewData["ActivePage"] = "Estadisticas";
         }
 
         public async Task<IActionResult> Index()

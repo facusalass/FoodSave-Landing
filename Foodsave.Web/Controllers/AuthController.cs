@@ -16,6 +16,7 @@ namespace Foodsave.Web.Controllers
         {
             _authService = authService;
             _logger = logger;
+            ViewData["ActivePage"] = "Auth";
         }
 
         [AllowAnonymous]

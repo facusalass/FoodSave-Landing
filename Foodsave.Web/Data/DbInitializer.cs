@@ -33,8 +33,7 @@ namespace Foodsave.Web.Data
                     },
                     Suscripciones = new List<Suscripcion>
                     {
-                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 1, 10), FechaFin = new DateTime(2026, 7, 10) },
-                        new Suscripcion { Plan = PlanSuscripcion.Pro, Estado = EstadoSuscripcion.Pendiente, FechaInicio = new DateTime(2026, 7, 11), FechaFin = new DateTime(2027, 1, 11) }
+                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 1, 10) }
                     }
                 },
                 new Comercio
@@ -52,8 +51,7 @@ namespace Foodsave.Web.Data
                     },
                     Suscripciones = new List<Suscripcion>
                     {
-                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 2, 1), FechaFin = new DateTime(2026, 8, 1) },
-                        new Suscripcion { Plan = PlanSuscripcion.Pro, Estado = EstadoSuscripcion.Pendiente, FechaInicio = new DateTime(2026, 8, 2), FechaFin = new DateTime(2027, 2, 2) }
+                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 2, 1) }
                     }
                 },
                 new Comercio
@@ -71,8 +69,7 @@ namespace Foodsave.Web.Data
                     },
                     Suscripciones = new List<Suscripcion>
                     {
-                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 3, 5), FechaFin = new DateTime(2026, 9, 5) },
-                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Vencida, FechaInicio = new DateTime(2025, 8, 1), FechaFin = new DateTime(2026, 2, 1) }
+                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 3, 5) }
                     }
                 },
                 new Comercio
@@ -90,8 +87,7 @@ namespace Foodsave.Web.Data
                     },
                     Suscripciones = new List<Suscripcion>
                     {
-                        new Suscripcion { Plan = PlanSuscripcion.Pro, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 1, 20), FechaFin = new DateTime(2026, 7, 20) },
-                        new Suscripcion { Plan = PlanSuscripcion.Pro, Estado = EstadoSuscripcion.Pendiente, FechaInicio = new DateTime(2026, 7, 21), FechaFin = new DateTime(2027, 1, 21) }
+                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 1, 20) }
                     }
                 },
                 new Comercio
@@ -109,16 +105,14 @@ namespace Foodsave.Web.Data
                     },
                     Suscripciones = new List<Suscripcion>
                     {
-                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Vencida, FechaInicio = new DateTime(2025, 10, 15), FechaFin = new DateTime(2026, 4, 15) },
-                        new Suscripcion { Plan = PlanSuscripcion.Pro, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 4, 20), FechaFin = new DateTime(2026, 10, 20) }
+                        new Suscripcion { Plan = PlanSuscripcion.Estandar, Estado = EstadoSuscripcion.Activa, FechaInicio = new DateTime(2026, 4, 20) }
                     }
                 }
             };
 
             var montosPorPlan = new Dictionary<PlanSuscripcion, decimal>
             {
-                [PlanSuscripcion.Estandar] = 0m,
-                [PlanSuscripcion.Pro] = 1500m
+                [PlanSuscripcion.Estandar] = 20000m
             };
 
             foreach (var comercio in comercios)
@@ -127,18 +121,29 @@ namespace Foodsave.Web.Data
 
                 foreach (var suscripcion in comercio.Suscripciones)
                 {
-                    suscripcion.MontoMensual = montosPorPlan[suscripcion.Plan];
-                    suscripcion.FechaProximoVencimiento = suscripcion.FechaFin;
-                    suscripcion.FechaUltimoPago =
-                        suscripcion.Estado == EstadoSuscripcion.Activa
-                            ? suscripcion.FechaInicio
-                            : null;
-                    suscripcion.EstadoPago = suscripcion.Estado switch
+                    if (suscripcion.Estado == EstadoSuscripcion.Activa)
                     {
-                        EstadoSuscripcion.Activa => EstadoPagoSuscripcion.AlDia,
-                        EstadoSuscripcion.Vencida => EstadoPagoSuscripcion.Vencido,
-                        _ => EstadoPagoSuscripcion.Pendiente
-                    };
+                        var inicio = DateTime.Today.AddDays(-45);
+                        suscripcion.FechaInicio = inicio;
+                        suscripcion.FechaFin = null;
+                        suscripcion.FechaUltimoPago = DateTime.Today.AddDays(-15);
+                        suscripcion.FechaProximoVencimiento = DateTime.Today.AddDays(15);
+                        suscripcion.EstadoPago = EstadoPagoSuscripcion.AlDia;
+                    }
+                    else
+                    {
+                        suscripcion.FechaFin = suscripcion.FechaInicio.AddDays(30);
+                        suscripcion.MontoMensual = montosPorPlan[suscripcion.Plan];
+                        suscripcion.FechaProximoVencimiento = suscripcion.FechaInicio.AddDays(30);
+                        suscripcion.FechaUltimoPago = null;
+                        suscripcion.EstadoPago = suscripcion.Estado switch
+                        {
+                            EstadoSuscripcion.Vencida => EstadoPagoSuscripcion.Vencido,
+                            _ => EstadoPagoSuscripcion.Pendiente
+                        };
+                    }
+
+                    suscripcion.MontoMensual = montosPorPlan[suscripcion.Plan];
                 }
             }
 
@@ -165,20 +170,49 @@ namespace Foodsave.Web.Data
                 return;
 
             var suscripciones = context.Suscripciones
+                .Include(s => s.Comercio)
                 .Where(s => s.Estado == EstadoSuscripcion.Activa)
+                .OrderBy(s => s.ComercioId)
                 .ToList();
+
+            var hoy = DateTime.Today;
 
             foreach (var suscripcion in suscripciones)
             {
-                var fechaPago = suscripcion.FechaInicio.AddMonths(1);
-                context.Pagos.Add(new Pago
+                DateTime? ultimoPago = null;
+                var fechaCursor = suscripcion.FechaInicio.AddDays(30);
+                var mesesTotales = 0;
+
+                while (fechaCursor <= hoy &&
+                       (suscripcion.FechaFin == null || fechaCursor <= suscripcion.FechaFin))
                 {
-                    ComercioId = suscripcion.ComercioId,
-                    SuscripcionId = suscripcion.Id,
-                    Monto = suscripcion.MontoMensual,
-                    FechaPago = fechaPago,
-                    Observacion = "Pago registrado automáticamente (demostración)"
-                });
+                    mesesTotales++;
+                    fechaCursor = fechaCursor.AddDays(30);
+                }
+
+                var mesesAPagar = Math.Min(mesesTotales, 5);
+                fechaCursor = suscripcion.FechaInicio.AddDays(30);
+
+                for (int i = 0; i < mesesAPagar; i++)
+                {
+                    context.Pagos.Add(new Pago
+                    {
+                        ComercioId = suscripcion.ComercioId,
+                        SuscripcionId = suscripcion.Id,
+                        Monto = suscripcion.MontoMensual,
+                        FechaPago = fechaCursor,
+                        Observacion = $"Pago mensual {fechaCursor:yyyy-MM}"
+                    });
+
+                    ultimoPago = fechaCursor;
+                    fechaCursor = fechaCursor.AddDays(30);
+                }
+
+                if (ultimoPago.HasValue)
+                {
+                    suscripcion.FechaUltimoPago = ultimoPago;
+                    suscripcion.FechaProximoVencimiento = ultimoPago.Value.AddDays(30);
+                }
             }
 
             context.SaveChanges();

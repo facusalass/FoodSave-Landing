@@ -26,10 +26,12 @@ namespace Foodsave.Web.Controllers
             _gestionSuscripciones = gestionSuscripciones;
             _registroPagoService = registroPagoService;
             _logger = logger;
+            ViewData["ActivePage"] = "Comercios";
         }
 
         public async Task<IActionResult> Index()
         {
+            ViewData["Breadcrumb"] = new (string, string?, string?)[] { ("Comercios", null, null) };
             var hoy = DateTime.Today;
             var comercios = await _context.Comercios
                 .AsNoTracking()
@@ -104,9 +106,8 @@ namespace Foodsave.Web.Controllers
                     Plan = Enum.Parse<PlanSuscripcion>(plan!),
                     Estado = EstadoSuscripcion.Activa,
                     FechaInicio = hoy,
-                    FechaFin = hoy.AddMonths(1),
                     MontoMensual = montoMensual,
-                    FechaProximoVencimiento = hoy,
+                    FechaProximoVencimiento = hoy.AddDays(30),
                     EstadoPago = EstadoPagoSuscripcion.Pendiente
                 }
             ];

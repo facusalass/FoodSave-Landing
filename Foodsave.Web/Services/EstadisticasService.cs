@@ -20,6 +20,8 @@ namespace Foodsave.Web.Services
         public async Task<EstadisticasViewModel> ObtenerEstadisticasAsync()
         {
             var hoy = DateTime.Today;
+            var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
+            var inicioAno = new DateTime(hoy.Year, 1, 1);
 
             var conteos = await _context.Comercios
                 .GroupBy(c => c.EstadoAdministrativo)
@@ -31,7 +33,50 @@ namespace Foodsave.Web.Services
                 .Include(c => c.Suscripciones)
                 .ToListAsync();
 
-            var datosPago = await _context.Pagos
+            int GetCount(EstadoAdministrativo estado) =>
+                conteos.TryGetValue(estado, out var count) ? count : 0;
+
+            int alDia = 0, vencidos = 0;
+            decimal mrr = 0;
+
+            foreach (var comercio in comercios)
+            {
+                var (suscripcion, estadoPago) =
+                    _gestionSuscripciones.ObtenerEstadoCompleto(
+                        comercio.Suscripciones, hoy);
+
+                if (estadoPago == EstadoPagoSuscripcion.AlDia) alDia++;
+                else if (estadoPago == EstadoPagoSuscripcion.Vencido) vencidos++;
+
+                if (comercio.EstadoAdministrativo != EstadoAdministrativo.Inhabilitado &&
+                    suscripcion is not null &&
+                    suscripcion.FechaInicio.Date <= hoy &&
+                    (suscripcion.FechaFin == null || suscripcion.FechaFin.Value.Date >= hoy))
+                {
+                    mrr += suscripcion.MontoMensual;
+                }
+            }
+
+            var pagosMes = await _context.Pagos
+                .Where(p => p.FechaPago >= inicioMes)
+                .ToListAsync();
+
+            var cobradoMes = pagosMes.Sum(p => p.Monto);
+            var comerciosPagaron = pagosMes.Select(p => p.ComercioId).Distinct().Count();
+
+            var totalDebenPagar = GetCount(EstadoAdministrativo.Activo) + GetCount(EstadoAdministrativo.PendientePago);
+            var tasa = totalDebenPagar > 0
+                ? (int)Math.Round((double)comerciosPagaron / totalDebenPagar * 100)
+                : 0;
+
+            var nuevosMes = await _context.Comercios
+                .CountAsync(c => c.Suscripciones.Any(s => s.FechaInicio >= inicioMes));
+
+            var nuevosAno = await _context.Comercios
+                .CountAsync(c => c.Suscripciones.Any(s => s.FechaInicio >= inicioAno));
+
+            var datosAno = await _context.Pagos
+                .Where(p => p.FechaPago >= inicioAno)
                 .GroupBy(_ => 1)
                 .Select(g => new
                 {
@@ -43,51 +88,31 @@ namespace Foodsave.Web.Services
             var solicitudesPendientes = await _context.SolicitudesComercio
                 .CountAsync(s => s.Estado == EstadoSolicitud.Pendiente);
 
-            int GetCount(EstadoAdministrativo estado) =>
-                conteos.TryGetValue(estado, out var count) ? count : 0;
-
-            var totalComercios = conteos.Values.Sum();
-            var activos = GetCount(EstadoAdministrativo.Activo);
-            var inhabilitados = GetCount(EstadoAdministrativo.Inhabilitado);
-            var pendientesPago = GetCount(EstadoAdministrativo.PendientePago);
-
-            int alDia = 0, vencidos = 0;
-            decimal ingresosEstimados = 0;
-
-            foreach (var comercio in comercios)
-            {
-                var (suscripcion, estadoPago) =
-                    _gestionSuscripciones.ObtenerEstadoCompleto(
-                        comercio.Suscripciones, hoy);
-
-                if (estadoPago == EstadoPagoSuscripcion.AlDia)
-                    alDia++;
-                else if (estadoPago == EstadoPagoSuscripcion.Vencido)
-                    vencidos++;
-
-                if (comercio.EstadoAdministrativo != EstadoAdministrativo.Inhabilitado &&
-                    suscripcion is not null &&
-                    suscripcion.FechaInicio.Date <= hoy &&
-                    suscripcion.FechaFin.Date >= hoy)
-                {
-                    ingresosEstimados += suscripcion.MontoMensual;
-                }
-            }
-
-            var datos = datosPago ?? new { Total = 0m, Cantidad = 0 };
+            var solicitudesMes = await _context.SolicitudesComercio
+                .CountAsync(s => s.FechaSolicitud >= inicioMes);
 
             return new EstadisticasViewModel
             {
-                TotalComercios = totalComercios,
-                ComerciosActivos = activos,
-                ComerciosInhabilitados = inhabilitados,
-                ComerciosPendientesPago = pendientesPago,
+                TotalComercios = conteos.Values.Sum(),
+                ComerciosActivos = GetCount(EstadoAdministrativo.Activo),
+                ComerciosInhabilitados = GetCount(EstadoAdministrativo.Inhabilitado),
+                ComerciosPendientesPago = GetCount(EstadoAdministrativo.PendientePago),
                 ComerciosAlDia = alDia,
                 ComerciosVencidos = vencidos,
-                IngresosEstimadosMes = ingresosEstimados,
-                IngresosRegistradosTotales = datos.Total,
-                CantidadPagosRegistrados = datos.Cantidad,
-                SolicitudesPendientes = solicitudesPendientes
+
+                MontoMensualRecurrente = mrr,
+                IngresosCobradosMes = cobradoMes,
+                ComerciosPagaronMes = comerciosPagaron,
+                TasaCobranza = tasa,
+
+                NuevosComerciosMes = nuevosMes,
+                NuevosComerciosAno = nuevosAno,
+
+                IngresosAnuales = datosAno?.Total ?? 0,
+                PagosAnuales = datosAno?.Cantidad ?? 0,
+
+                SolicitudesPendientes = solicitudesPendientes,
+                SolicitudesRecibidasMes = solicitudesMes
             };
         }
     }

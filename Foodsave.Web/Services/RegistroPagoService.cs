@@ -62,7 +62,7 @@ namespace Foodsave.Web.Services
             });
 
             suscripcion.FechaUltimoPago = fechaPago;
-            suscripcion.FechaProximoVencimiento = fechaPago.AddMonths(1);
+            suscripcion.FechaProximoVencimiento = fechaPago.AddDays(30);
             suscripcion.EstadoPago = EstadoPagoSuscripcion.AlDia;
             suscripcion.Estado = EstadoSuscripcion.Activa;
 

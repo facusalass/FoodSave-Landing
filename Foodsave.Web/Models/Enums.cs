@@ -11,7 +11,8 @@ namespace Foodsave.Web.Models
     {
         Activa,
         Pendiente,
-        Vencida
+        Vencida,
+        Cancelada
     }
 
     public enum EstadoPagoSuscripcion

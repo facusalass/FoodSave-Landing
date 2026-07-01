@@ -20,6 +20,7 @@ namespace Foodsave.Web.Controllers
         {
             _context = context;
             _logger = logger;
+            ViewData["ActivePage"] = "Solicitudes";
         }
 
         public async Task<IActionResult> Index()

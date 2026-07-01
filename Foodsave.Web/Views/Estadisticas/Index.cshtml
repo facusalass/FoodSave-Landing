@@ -3,95 +3,112 @@
 @{
     ViewData["Title"] = "Estadísticas";
     var culture = System.Globalization.CultureInfo.GetCultureInfo("es-AR");
+    var tasaClase = Model.TasaCobranza >= 80 ? "text-success" :
+                    Model.TasaCobranza >= 50 ? "text-warning" : "text-danger";
 }
 
 <section class="py-4">
     <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
         <div>
-            <h1 class="h2 mb-2">Estadísticas internas</h1>
-            <p class="lead mb-0">
-                Suscripciones e ingresos propios de FoodSave.
-            </p>
+            <h1 class="h2 mb-2">Panel de control</h1>
+            <p class="lead mb-0">Resumen de @DateTime.Now.ToString("MMMM yyyy")</p>
         </div>
         <a class="btn btn-outline-primary align-self-md-start"
-           asp-controller="Comercios"
-           asp-action="Index">
+           asp-controller="Comercios" asp-action="Index">
             Volver a comercios
         </a>
     </div>
 
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <p class="text-muted small text-uppercase mb-2">Ingreso mensual recurrente</p>
+                <p class="display-5 fw-bold mb-0">@Model.MontoMensualRecurrente.ToString("C0", culture)</p>
+                <p class="text-muted small mb-0 mt-1">Esperado por mes</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <p class="text-muted small text-uppercase mb-2">Cobrado este mes</p>
+                <p class="display-5 fw-bold mb-0" style="color:var(--foodsave-green);">
+                    @Model.IngresosCobradosMes.ToString("C0", culture)
+                </p>
+                <p class="text-muted small mb-0 mt-1">
+                    @Model.ComerciosPagaronMes comercio(s) pagaron
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-card h-100">
+                <p class="text-muted small text-uppercase mb-2">Tasa de cobranza</p>
+                <p class="display-5 fw-bold mb-0 @tasaClase">@Model.TasaCobranza%</p>
+                <p class="text-muted small mb-0 mt-1">
+                    @Model.ComerciosPagaronMes de
+                    @(Model.ComerciosActivos + Model.ComerciosPendientesPago) comercios
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-lg-3">
-            <div class="info-card h-100">
-                <p class="text-muted mb-1">Total de comercios</p>
-                <p class="display-6 fw-semibold mb-0">@Model.TotalComercios</p>
+        <div class="col-6 col-md-3">
+            <div class="info-card h-100 text-center">
+                <p class="display-6 fw-bold mb-0">@Model.ComerciosActivos</p>
+                <p class="text-muted small mb-0">comercios activos</p>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="info-card h-100">
-                <p class="text-muted mb-1">Activos</p>
-                <p class="display-6 fw-semibold mb-0">@Model.ComerciosActivos</p>
+        <div class="col-6 col-md-3">
+            <div class="info-card h-100 text-center">
+                <p class="display-6 fw-bold mb-0" style="color:var(--foodsave-green);">@Model.ComerciosAlDia</p>
+                <p class="text-muted small mb-0">al d&iacute;a</p>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="info-card h-100">
-                <p class="text-muted mb-1">Inhabilitados</p>
-                <p class="display-6 fw-semibold mb-0">@Model.ComerciosInhabilitados</p>
+        <div class="col-6 col-md-3">
+            <div class="info-card h-100 text-center">
+                <p class="display-6 fw-bold mb-0" style="color:var(--foodsave-orange);">@Model.ComerciosPendientesPago</p>
+                <p class="text-muted small mb-0">pendientes de pago</p>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="info-card h-100">
-                <p class="text-muted mb-1">Pendientes de pago</p>
-                <p class="display-6 fw-semibold mb-0">@Model.ComerciosPendientesPago</p>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="info-card h-100">
-                <p class="text-muted mb-1">Comercios al día</p>
-                <p class="display-6 fw-semibold mb-0">@Model.ComerciosAlDia</p>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="info-card h-100">
-                <p class="text-muted mb-1">Comercios vencidos</p>
-                <p class="display-6 fw-semibold mb-0">@Model.ComerciosVencidos</p>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="info-card h-100">
-                <p class="text-muted mb-1">Solicitudes pendientes</p>
-                <p class="display-6 fw-semibold mb-0">@Model.SolicitudesPendientes</p>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="info-card h-100">
-                <p class="text-muted mb-1">Pagos registrados</p>
-                <p class="display-6 fw-semibold mb-0">@Model.CantidadPagosRegistrados</p>
+        <div class="col-6 col-md-3">
+            <div class="info-card h-100 text-center">
+                <p class="display-6 fw-bold mb-0" style="color:var(--foodsave-muted);">@Model.ComerciosInhabilitados</p>
+                <p class="text-muted small mb-0">inhabilitados</p>
             </div>
         </div>
     </div>
 
     <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="admin-card h-100">
-                <h2 class="h5">Ingresos estimados del mes</h2>
-                <p class="display-6 fw-semibold mb-2">
-                    @Model.IngresosEstimadosMes.ToString("C", culture)
+                <p class="text-muted small text-uppercase mb-2">Ingresos anuales</p>
+                <p class="display-5 fw-bold mb-1">
+                    @Model.IngresosAnuales.ToString("C0", culture)
                 </p>
-                <p class="text-muted mb-0">
-                    Suma de montos mensuales configurados en suscripciones
-                    vigentes, excluyendo comercios inhabilitados.
+                <p class="text-muted small mb-0">
+                    @Model.PagosAnuales pagos en @DateTime.Now.Year
                 </p>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="admin-card h-100">
-                <h2 class="h5">Ingresos registrados totales</h2>
-                <p class="display-6 fw-semibold mb-2">
-                    @Model.IngresosRegistradosTotales.ToString("C", culture)
+                <p class="text-muted small text-uppercase mb-2">Nuevos comercios</p>
+                <p class="display-5 fw-bold mb-1">
+                    @Model.NuevosComerciosAno
                 </p>
-                <p class="text-muted mb-0">
-                    Suma exclusiva de cobros manuales registrados.
+                <p class="text-muted small mb-0">
+                    @Model.NuevosComerciosMes este mes &middot;
+                    @Model.NuevosComerciosAno en @DateTime.Now.Year
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card h-100">
+                <p class="text-muted small text-uppercase mb-2">Solicitudes</p>
+                <p class="display-5 fw-bold mb-1">
+                    @Model.SolicitudesPendientes
+                </p>
+                <p class="text-muted small mb-0">
+                    pendientes &middot; @Model.SolicitudesRecibidasMes este mes
                 </p>
             </div>
         </div>

@@ -121,6 +121,12 @@ body {
   background-color: var(--foodsave-orange-light);
 }
 
+.navbar .nav-link.active {
+  color: var(--foodsave-orange) !important;
+  background-color: var(--foodsave-orange-light);
+  font-weight: 600;
+}
+
 .navbar-user {
   color: var(--foodsave-muted) !important;
   font-size: 0.85rem;
@@ -398,6 +404,28 @@ body {
   overflow: hidden;
 }
 
+.plan-card-coming {
+  border-color: var(--foodsave-border);
+  opacity: 0.85;
+  position: relative;
+  overflow: hidden;
+}
+
+.plan-card-coming::before {
+  content: "Próximamente";
+  position: absolute;
+  top: 22px;
+  right: -32px;
+  background-color: var(--foodsave-muted);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 40px;
+  transform: rotate(45deg);
+  line-height: 1.4;
+}
+
 .plan-card-featured::before {
   content: "Recomendado";
   position: absolute;
@@ -630,6 +658,77 @@ section h2::after {
 /* ── Admin card ── */
 .admin-card {
   border-left: 4px solid var(--foodsave-orange);
+}
+
+/* ── Breadcrumb ── */
+.foodsave-breadcrumb {
+  padding: 14px 0 6px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.foodsave-breadcrumb a {
+  color: var(--foodsave-muted);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.foodsave-breadcrumb a:hover {
+  color: var(--foodsave-orange);
+}
+
+.foodsave-breadcrumb span {
+  color: var(--foodsave-dark);
+  font-weight: 600;
+}
+
+.breadcrumb-sep {
+  color: var(--foodsave-border) !important;
+  font-weight: 400 !important;
+  font-size: 1rem;
+}
+
+/* ── Spinner ── */
+.spinner-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+}
+
+.empty-state-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.empty-state p {
+  color: var(--foodsave-muted);
+  font-size: 0.95rem;
+  margin-bottom: 16px;
 }
 
 /* ── Responsive ── */

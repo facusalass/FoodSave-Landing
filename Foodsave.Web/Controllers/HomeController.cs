@@ -8,11 +8,13 @@ namespace Foodsave.Web.Controllers
     {
         public IActionResult Index()
         {
+            ViewData["ActivePage"] = "Home";
             return View();
         }
 
         public IActionResult Privacy()
         {
+            ViewData["ActivePage"] = "Home";
             return View();
         }
 
@@ -20,6 +22,12 @@ namespace Foodsave.Web.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [Route("/404")]
+        public IActionResult NotFoundPage()
+        {
+            return View("NotFound");
         }
     }
 }
