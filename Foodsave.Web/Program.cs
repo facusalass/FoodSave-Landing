@@ -61,6 +61,7 @@ namespace Foodsave.Web
             }
 
             app.UseForwardedHeaders();
+            app.UseMiddleware<Infrastructure.SecurityHeadersMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {

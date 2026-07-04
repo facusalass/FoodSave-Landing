@@ -50,6 +50,15 @@ namespace Foodsave.Web
             services.AddScoped<EstadisticasService>();
             services.AddScoped<RegistroPagoService>();
 
+            services.AddHttpClient<FoodSaveApiClient>((sp, client) =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                client.BaseAddress = new Uri(config["FoodSaveApi:BaseUrl"]
+                    ?? throw new InvalidOperationException("FoodSaveApi:BaseUrl no está configurado."));
+                client.DefaultRequestHeaders.Add("X-API-Key", config["FoodSaveApi:ApiKey"]
+                    ?? throw new InvalidOperationException("FoodSaveApi:ApiKey no está configurado."));
+            });
+
             return services;
         }
 
@@ -65,6 +74,9 @@ namespace Foodsave.Web
                     options.Cookie.Name = "FoodSave.Auth";
                     options.ExpireTimeSpan = TimeSpan.FromHours(8);
                     options.SlidingExpiration = true;
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 });
 
             return services;

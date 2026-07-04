@@ -46,6 +46,7 @@ namespace Foodsave.Web.Models
         public string? ApellidoTitular { get; set; }
         public string? TelefonoTitular { get; set; }
         public string EmailTitular { get; set; } = string.Empty;
+        public string? Ciudad { get; set; }
         public string? Mensaje { get; set; }
         public string? PlanInteres { get; set; }
         public string Estado { get; set; } = string.Empty;
@@ -122,6 +123,7 @@ namespace Foodsave.Web.Models
                 ApellidoTitular = solicitud.ApellidoTitular,
                 TelefonoTitular = solicitud.TelefonoTitular,
                 EmailTitular = solicitud.EmailTitular,
+                Ciudad = solicitud.Ciudad,
                 Mensaje = solicitud.Mensaje,
                 PlanInteres = solicitud.PlanInteres?.ToString(),
                 Estado = solicitud.Estado.ToString(),

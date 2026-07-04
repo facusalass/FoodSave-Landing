@@ -91,11 +91,21 @@
             {
                 <form asp-action="Reactivar"
                       asp-route-id="@comercio.Id"
-                      method="post">
+                      method="post" class="d-inline">
                     <button type="submit" class="btn btn-success"
                             data-bs-toggle="tooltip" data-bs-placement="top"
                             title="Vuelve a dar de alta al comercio.">
                         Reactivar comercio
+                    </button>
+                </form>
+                <form asp-action="Eliminar"
+                      asp-route-id="@comercio.Id"
+                      method="post" class="d-inline"
+                      onsubmit="return confirm('¿Eliminar permanentemente este comercio? Se borrarán todos sus pagos, suscripciones y datos del titular. Esta acción no se puede deshacer.');">
+                    <button type="submit" class="btn btn-danger"
+                            data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="Borra el comercio y todos sus datos. No se puede deshacer.">
+                        Eliminar comercio
                     </button>
                 </form>
             }

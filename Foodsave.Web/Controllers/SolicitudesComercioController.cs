@@ -104,8 +104,7 @@ namespace Foodsave.Web.Controllers
             string? observation)
         {
             var solicitud = await _context.SolicitudesComercio.FindAsync(id);
-            if (solicitud is null)
-                return NotFound();
+            if (solicitud is null) return NotFound();
 
             if (solicitud.Estado != EstadoSolicitud.Pendiente)
             {
@@ -116,8 +115,7 @@ namespace Foodsave.Web.Controllers
             var normalizedObservation = TextHelper.NormalizarOpcional(observation);
             if (normalizedObservation?.Length > 1000)
             {
-                TempData["Error"] =
-                    "La observación no puede superar los 1000 caracteres.";
+                TempData["Error"] = "La observación no puede superar los 1000 caracteres.";
                 return RedirectToAction(nameof(Details), new { id });
             }
 
@@ -126,9 +124,7 @@ namespace Foodsave.Web.Controllers
             solicitud.ObservacionAdmin = normalizedObservation;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation(
-                "Solicitud {Estado}: Id={Id}, {Nombre}",
-                nextStatus, id, solicitud.NombreComercio);
+            _logger.LogInformation("Solicitud {Estado}: Id={Id}", nextStatus, id);
 
             TempData["Success"] = nextStatus == EstadoSolicitud.Aceptada
                 ? "Solicitud aceptada. Ya podés inscribir el comercio manualmente."

@@ -15,17 +15,20 @@ namespace Foodsave.Web.Controllers
         private readonly GestionSuscripcionesService _gestionSuscripciones;
         private readonly RegistroPagoService _registroPagoService;
         private readonly ILogger<ComerciosController> _logger;
+        private readonly FoodSaveApiClient _foodSaveApi;
 
         public ComerciosController(
             ApplicationDbContext context,
             GestionSuscripcionesService gestionSuscripciones,
             RegistroPagoService registroPagoService,
-            ILogger<ComerciosController> logger)
+            ILogger<ComerciosController> logger,
+            FoodSaveApiClient foodSaveApi)
         {
             _context = context;
             _gestionSuscripciones = gestionSuscripciones;
             _registroPagoService = registroPagoService;
             _logger = logger;
+            _foodSaveApi = foodSaveApi;
             ViewData["ActivePage"] = "Comercios";
         }
 
@@ -78,7 +81,10 @@ namespace Foodsave.Web.Controllers
         public async Task<IActionResult> Create(
             Comercio comercio,
             string planInicial,
-            decimal montoMensual)
+            decimal montoMensual,
+            string? ciudad,
+            string? provincia,
+            string? contrasena)
         {
             var plan = PlanHelper.NormalizarPlan(planInicial);
             if (plan is null)
@@ -95,10 +101,38 @@ namespace Foodsave.Web.Controllers
                     "El monto mensual debe ser cero o mayor.");
             }
 
+            if (string.IsNullOrWhiteSpace(contrasena) || contrasena.Length < 6)
+            {
+                ModelState.AddModelError(
+                    nameof(contrasena),
+                    "La contraseña debe tener al menos 6 caracteres.");
+            }
+
+            var nombre = comercio.Nombre?.Trim();
+            if (!string.IsNullOrWhiteSpace(nombre) &&
+                await _context.Comercios.AnyAsync(c => c.Nombre == nombre))
+            {
+                ModelState.AddModelError(
+                    nameof(comercio.Nombre),
+                    "Ya existe un comercio con ese nombre.");
+            }
+
+            var email = comercio.Titular?.Email?.Trim().ToLowerInvariant();
+            if (!string.IsNullOrWhiteSpace(email) &&
+                await _context.Titulares.AnyAsync(t => t.Email == email))
+            {
+                ModelState.AddModelError(
+                    "Titular.Email",
+                    "Ya existe un comercio registrado con ese email.");
+            }
+
             if (!ModelState.IsValid)
             {
                 ViewData["PlanInicial"] = planInicial;
                 ViewData["MontoMensual"] = montoMensual;
+                ViewData["Ciudad"] = ciudad;
+                ViewData["Provincia"] = provincia;
+                ViewData["Contrasena"] = contrasena;
                 return View(comercio);
             }
 
@@ -120,11 +154,28 @@ namespace Foodsave.Web.Controllers
             _context.Comercios.Add(comercio);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Comercio creado: {Nombre} (Id={Id})",
-                comercio.Nombre, comercio.Id);
+            var location = new[] { ciudad?.Trim(), provincia?.Trim() }
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .DefaultIfEmpty("No especificada");
+            var businessCity = string.Join(", ", location);
 
-            TempData["Success"] =
-                "Comercio creado. La suscripción quedó pendiente de pago.";
+            var apiOk = await _foodSaveApi.RegistrarComercioAsync(
+                email: comercio.Titular?.Email ?? "",
+                password: contrasena!,
+                businessName: comercio.Nombre,
+                businessAddress: comercio.Direccion,
+                businessCategory: comercio.Rubro,
+                businessCity: businessCity,
+                ownerName: $"{comercio.Titular?.Nombre} {comercio.Titular?.Apellido}".Trim(),
+                ownerPhone: comercio.Titular?.Telefono
+            );
+
+            _logger.LogInformation("Comercio creado: {Nombre} (Id={Id}), FoodSave={Ok}",
+                comercio.Nombre, comercio.Id, apiOk);
+
+            TempData["Success"] = apiOk
+                ? "Comercio creado y cuenta activada en FoodSave."
+                : "Comercio creado. La cuenta en FoodSave no se pudo activar automáticamente.";
             return RedirectToAction(nameof(Details), new { id = comercio.Id });
         }
 
@@ -172,6 +223,43 @@ namespace Foodsave.Web.Controllers
                     : "El comercio fue reactivado y quedó pendiente de pago.";
 
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            var comercio = await _context.Comercios
+                .Include(c => c.Titular)
+                .Include(c => c.Suscripciones)
+                .Include(c => c.Pagos)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (comercio is null)
+                return NotFound();
+
+            if (comercio.EstadoAdministrativo != EstadoAdministrativo.Inhabilitado)
+            {
+                TempData["Error"] = "Primero inhabilitá el comercio antes de eliminarlo.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            using var tx = await _context.Database.BeginTransactionAsync();
+
+            _context.Pagos.RemoveRange(comercio.Pagos);
+            _context.Suscripciones.RemoveRange(comercio.Suscripciones);
+            _context.Comercios.Remove(comercio);
+
+            if (comercio.Titular is not null)
+                _context.Titulares.Remove(comercio.Titular);
+
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            _logger.LogInformation("Comercio eliminado: Id={Id}, Nombre={Nombre}", id, comercio.Nombre);
+            TempData["Success"] = "Comercio eliminado permanentemente.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]

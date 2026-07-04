@@ -30,6 +30,12 @@ namespace Foodsave.Web.Models
         [MaxLength(200)]
         public string EmailTitular { get; set; } = string.Empty;
 
+        [MaxLength(100)]
+        public string? Ciudad { get; set; }
+
+        [MaxLength(100)]
+        public string? Contrasena { get; set; }
+
         [MaxLength(2000)]
         public string? Mensaje { get; set; }
 
