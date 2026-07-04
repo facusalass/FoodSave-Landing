@@ -14,7 +14,7 @@ namespace Foodsave.Web.Services
             _logger = logger;
         }
 
-        public async Task<bool> RegistrarComercioAsync(
+        public async Task<string?> RegistrarComercioAsync(
             string email,
             string password,
             string businessName,
@@ -38,10 +38,6 @@ namespace Foodsave.Web.Services
 
             try
             {
-                var json = JsonSerializer.Serialize(payload);
-                _logger.LogInformation("Enviando a FoodSave API: {Url}, body: {Body}",
-                    _http.BaseAddress + "auth/register-business", json);
-
                 var response = await _http.PostAsJsonAsync("/auth/register-business", payload);
                 var body = await response.Content.ReadAsStringAsync();
 
@@ -50,27 +46,56 @@ namespace Foodsave.Web.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("FoodSave API error {Status} para {Email}: {Body}",
-                        (int)response.StatusCode, email, body);
-                    return false;
+                    _logger.LogWarning("FoodSave API error {Status} para {Email}", (int)response.StatusCode, email);
+                    return null;
                 }
 
                 using var doc = JsonDocument.Parse(body);
                 var success = doc.RootElement.TryGetProperty("success", out var prop) && prop.GetBoolean();
 
-                if (success)
+                if (!success)
                 {
-                    _logger.LogInformation("Cuenta creada en FoodSave: {Email}", email);
-                    return true;
+                    var errorMsg = doc.RootElement.TryGetProperty("error", out var err) ? err.GetString() : "sin detalle";
+                    _logger.LogWarning("FoodSave API rechazó {Email}: {Error}", email, errorMsg);
+                    return null;
                 }
 
-                var errorMsg = doc.RootElement.TryGetProperty("error", out var err) ? err.GetString() : "sin detalle";
-                _logger.LogWarning("FoodSave API rechazó {Email}: {Error}", email, errorMsg);
-                return false;
+                var businessId = doc.RootElement
+                    .GetProperty("data")
+                    .GetProperty("user")
+                    .GetProperty("businessId")
+                    .GetString();
+
+                _logger.LogInformation("Cuenta creada en FoodSave: {Email}, businessId={BusinessId}", email, businessId);
+                return businessId;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al llamar a FoodSave API para {Email}", email);
+                return null;
+            }
+        }
+
+        public async Task<bool> ToggleActiveAsync(string businessId, bool isActive)
+        {
+            var payload = new { businessId, isActive };
+
+            try
+            {
+                _logger.LogInformation("Toggle active FoodSave: {BusinessId}, isActive={Active}", businessId, isActive);
+
+                var response = await _http.PatchAsJsonAsync(
+                    "/auth/register-business/toggle-active", payload);
+                var body = await response.Content.ReadAsStringAsync();
+
+                _logger.LogInformation("FoodSave toggle-active respondió {Status}: {Body}",
+                    (int)response.StatusCode, body);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al llamar toggle-active para {BusinessId}", businessId);
                 return false;
             }
         }

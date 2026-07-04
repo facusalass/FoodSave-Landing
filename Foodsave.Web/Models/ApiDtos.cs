@@ -8,6 +8,7 @@ namespace Foodsave.Web.Models
         public string Direccion { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
         public string EstadoAdministrativo { get; set; } = string.Empty;
+        public string? FoodSaveBusinessId { get; set; }
 
         public TitularDto Titular { get; set; } = new();
         public List<SuscripcionDto> Suscripciones { get; set; } = new();
@@ -80,6 +81,7 @@ namespace Foodsave.Web.Models
                 Direccion = comercio.Direccion,
                 Telefono = comercio.Telefono,
                 EstadoAdministrativo = comercio.EstadoAdministrativo.ToString(),
+                FoodSaveBusinessId = comercio.FoodSaveBusinessId,
                 Titular = new TitularDto
                 {
                     Id = comercio.Titular.Id,

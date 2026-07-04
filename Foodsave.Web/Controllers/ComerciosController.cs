@@ -162,7 +162,7 @@ namespace Foodsave.Web.Controllers
             var apiOk = await _foodSaveApi.RegistrarComercioAsync(
                 email: comercio.Titular?.Email ?? "",
                 password: contrasena!,
-                businessName: comercio.Nombre,
+                businessName: comercio.Nombre ?? "",
                 businessAddress: comercio.Direccion,
                 businessCategory: comercio.Rubro,
                 businessCity: businessCity,
@@ -170,10 +170,16 @@ namespace Foodsave.Web.Controllers
                 ownerPhone: comercio.Titular?.Telefono
             );
 
-            _logger.LogInformation("Comercio creado: {Nombre} (Id={Id}), FoodSave={Ok}",
-                comercio.Nombre, comercio.Id, apiOk);
+            if (apiOk is not null)
+            {
+                comercio.FoodSaveBusinessId = apiOk;
+                await _context.SaveChangesAsync();
+            }
 
-            TempData["Success"] = apiOk
+            _logger.LogInformation("Comercio creado: {Nombre} (Id={Id}), FoodSaveId={FsId}",
+                comercio.Nombre, comercio.Id, comercio.FoodSaveBusinessId);
+
+            TempData["Success"] = apiOk is not null
                 ? "Comercio creado y cuenta activada en FoodSave."
                 : "Comercio creado. La cuenta en FoodSave no se pudo activar automáticamente.";
             return RedirectToAction(nameof(Details), new { id = comercio.Id });
@@ -189,6 +195,9 @@ namespace Foodsave.Web.Controllers
 
             comercio.EstadoAdministrativo = EstadoAdministrativo.Inhabilitado;
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(comercio.FoodSaveBusinessId))
+                await _foodSaveApi.ToggleActiveAsync(comercio.FoodSaveBusinessId, false);
 
             _logger.LogInformation("Comercio inhabilitado: Id={Id}", id);
             TempData["Success"] = "El comercio fue inhabilitado.";
@@ -213,6 +222,9 @@ namespace Foodsave.Web.Controllers
                     suscripcion, DateTime.Today);
 
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(comercio.FoodSaveBusinessId))
+                await _foodSaveApi.ToggleActiveAsync(comercio.FoodSaveBusinessId, true);
 
             _logger.LogInformation("Comercio reactivado: Id={Id}, Estado={Estado}",
                 id, comercio.EstadoAdministrativo);

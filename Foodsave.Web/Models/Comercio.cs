@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Foodsave.Web.Models
 {
     public class Comercio
@@ -8,6 +10,9 @@ namespace Foodsave.Web.Models
         public string Direccion { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
         public EstadoAdministrativo EstadoAdministrativo { get; set; } = EstadoAdministrativo.Activo;
+
+        [MaxLength(100)]
+        public string? FoodSaveBusinessId { get; set; }
 
         public int TitularId { get; set; }
         public Titular Titular { get; set; } = new();
