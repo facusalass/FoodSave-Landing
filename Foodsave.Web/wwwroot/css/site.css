@@ -466,18 +466,6 @@ body {
   width: 100%;
 }
 
-.demo-credentials {
-  background-color: var(--foodsave-cream);
-  border: 1px solid var(--foodsave-border);
-  border-radius: var(--radius-sm);
-  color: var(--foodsave-gray);
-  display: flex;
-  flex-direction: column;
-  font-size: 0.88rem;
-  gap: 4px;
-  padding: 14px 16px;
-}
-
 .validation-summary-valid {
   display: none;
 }
