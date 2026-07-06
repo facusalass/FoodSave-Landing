@@ -17,13 +17,13 @@
 
 | Orden | Archivo | Qué hacer |
 |-------|---------|-----------|
-| 1 | Abrir carpeta `Models/` | Mostrar que hay muchos archivos organizados (Comercio.cs, Titular.cs, Suscripcion.cs, etc.) |
+| 1 | Abrir `DatabaseConnectionStringResolver.cs` | Señalar que resuelve `DATABASE_URL` (línea 17-22) — es la conexión a PostgreSQL en Railway, la base de datos real en la nube |
 | 2 | Abrir `ApplicationDbContext.cs` | Señalar las 5 DbSets (línea 13-17) y el OnModelCreating de 3 líneas |
 | 3 | Abrir `Migrations/` | Mostrar que hay 8 migraciones en orden |
 
 ### Qué decir (leé esto textual)
 
-> "El proyecto tiene 5 tablas organizadas con Entity Framework Code-First. Las entidades están en la carpeta Models, y el DbContext las expone como DbSets. La configuración de cada tabla está en archivos separados dentro de Data/Configurations, y el OnModelCreating las carga automáticamente con una sola línea. Usamos enums de C# que en la base de datos se guardan como texto, y todos los borrados están bloqueados con RESTRICT para no perder datos. El historial de cambios está en 8 migraciones, todas reversibles, y la base se puebla automáticamente con datos de demostración cada vez que arranca."
+> "El proyecto usa **PostgreSQL en Railway** como base de datos en producción. La conexión se resuelve desde la variable `DATABASE_URL` mediante un resolver personalizado. Las 5 tablas están hechas con Entity Framework Code-First y configuradas con `IEntityTypeConfiguration`, una por archivo. El `OnModelCreating` es una sola línea que escanea todo el proyecto. En la base de datos usamos `decimal(12,2)` para montos, índices únicos en email y nombre, y enums que se guardan como texto legible. Los borrados están bloqueados con RESTRICT para no perder datos. Hay 8 migraciones, todas reversibles. La base en Railway se actualiza automáticamente con cada deploy porque las migraciones se aplican al iniciar la app."
 
 ---
 
