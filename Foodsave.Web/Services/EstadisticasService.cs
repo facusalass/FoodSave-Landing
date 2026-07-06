@@ -23,15 +23,29 @@ namespace Foodsave.Web.Services
             var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
             var inicioAno = new DateTime(hoy.Year, 1, 1);
 
-            var conteos = await _context.Comercios
-                .GroupBy(c => c.EstadoAdministrativo)
-                .Select(g => new { Estado = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(k => k.Estado, v => v.Count);
-
             var comercios = await _context.Comercios
                 .AsNoTracking()
                 .Include(c => c.Suscripciones)
                 .ToListAsync();
+
+            var pagos = await _context.Pagos
+                .AsNoTracking()
+                .Where(p => p.FechaPago >= inicioMes)
+                .ToListAsync();
+
+            var pagosAno = await _context.Pagos
+                .AsNoTracking()
+                .Where(p => p.FechaPago >= inicioAno)
+                .ToListAsync();
+
+            var solicitudes = await _context.SolicitudesComercio
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Conteos por estado administrativo
+            var conteos = comercios
+                .GroupBy(c => c.EstadoAdministrativo)
+                .ToDictionary(g => g.Key, g => g.Count());
 
             int GetCount(EstadoAdministrativo estado) =>
                 conteos.TryGetValue(estado, out var count) ? count : 0;
@@ -45,8 +59,10 @@ namespace Foodsave.Web.Services
                     _gestionSuscripciones.ObtenerEstadoCompleto(
                         comercio.Suscripciones, hoy);
 
-                if (estadoPago == EstadoPagoSuscripcion.AlDia) alDia++;
-                else if (estadoPago == EstadoPagoSuscripcion.Vencido) vencidos++;
+                if (estadoPago == EstadoPagoSuscripcion.AlDia)
+                    alDia++;
+                else if (estadoPago == EstadoPagoSuscripcion.Vencido)
+                    vencidos++;
 
                 if (comercio.EstadoAdministrativo != EstadoAdministrativo.Inhabilitado &&
                     suscripcion is not null &&
@@ -57,39 +73,32 @@ namespace Foodsave.Web.Services
                 }
             }
 
-            var pagosMes = await _context.Pagos
-                .Where(p => p.FechaPago >= inicioMes)
-                .ToListAsync();
+            var cobradoMes = pagos.Sum(p => p.Monto);
+            var comerciosPagaron = pagos.Select(p => p.ComercioId).Distinct().Count();
 
-            var cobradoMes = pagosMes.Sum(p => p.Monto);
-            var comerciosPagaron = pagosMes.Select(p => p.ComercioId).Distinct().Count();
+            var totalDebenPagar = GetCount(EstadoAdministrativo.Activo) +
+                                  GetCount(EstadoAdministrativo.PendientePago);
 
-            var totalDebenPagar = GetCount(EstadoAdministrativo.Activo) + GetCount(EstadoAdministrativo.PendientePago);
             var tasa = totalDebenPagar > 0
                 ? (int)Math.Round((double)comerciosPagaron / totalDebenPagar * 100)
                 : 0;
 
-            var nuevosMes = await _context.Comercios
-                .CountAsync(c => c.Suscripciones.Any(s => s.FechaInicio >= inicioMes));
+            var activas = comercios
+                .SelectMany(c => c.Suscripciones)
+                .Where(s => s.Estado == EstadoSuscripcion.Activa)
+                .ToList();
 
-            var nuevosAno = await _context.Comercios
-                .CountAsync(c => c.Suscripciones.Any(s => s.FechaInicio >= inicioAno));
+            var nuevosMes = activas.Count(s => s.FechaInicio >= inicioMes);
+            var nuevosAno = activas.Count(s => s.FechaInicio >= inicioAno);
 
-            var datosAno = await _context.Pagos
-                .Where(p => p.FechaPago >= inicioAno)
-                .GroupBy(_ => 1)
-                .Select(g => new
-                {
-                    Total = g.Sum(p => (decimal?)p.Monto) ?? 0,
-                    Cantidad = g.Count()
-                })
-                .FirstOrDefaultAsync();
+            var ingresosAnuales = pagosAno.Sum(p => p.Monto);
+            var pagosAnualesCount = pagosAno.Count;
 
-            var solicitudesPendientes = await _context.SolicitudesComercio
-                .CountAsync(s => s.Estado == EstadoSolicitud.Pendiente);
+            var solicitudesPendientes = solicitudes
+                .Count(s => s.Estado == EstadoSolicitud.Pendiente);
 
-            var solicitudesMes = await _context.SolicitudesComercio
-                .CountAsync(s => s.FechaSolicitud >= inicioMes);
+            var solicitudesMes = solicitudes
+                .Count(s => s.FechaSolicitud >= inicioMes);
 
             return new EstadisticasViewModel
             {
@@ -108,8 +117,8 @@ namespace Foodsave.Web.Services
                 NuevosComerciosMes = nuevosMes,
                 NuevosComerciosAno = nuevosAno,
 
-                IngresosAnuales = datosAno?.Total ?? 0,
-                PagosAnuales = datosAno?.Cantidad ?? 0,
+                IngresosAnuales = ingresosAnuales,
+                PagosAnuales = pagosAnualesCount,
 
                 SolicitudesPendientes = solicitudesPendientes,
                 SolicitudesRecibidasMes = solicitudesMes
