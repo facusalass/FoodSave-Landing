@@ -2,6 +2,25 @@
 // No exponen las entidades de EF Core ni navegan propiedades de BD.
 namespace Foodsave.Web.Models
 {
+    // Respuesta reutilizable para cualquier listado paginado de la API.
+    // T representa el tipo de elemento: SolicitudDto, ComercioDto, etc.
+    public class RespuestaPaginada<T>
+    {
+        // Registros pertenecientes únicamente a la página solicitada.
+        public IReadOnlyCollection<T> Items { get; set; } = [];
+
+        // Metadatos que permiten conocer la posición y el tamaño del listado.
+        public int PaginaActual { get; set; }
+        public int RegistrosPorPagina { get; set; }
+        public int TotalRegistros { get; set; }
+        public int TotalPaginas { get; set; }
+
+        // Se calculan automáticamente y ayudan al cliente a habilitar
+        // o deshabilitar los botones de navegación.
+        public bool TienePaginaAnterior => PaginaActual > 1;
+        public bool TienePaginaSiguiente => PaginaActual < TotalPaginas;
+    }
+
     // Cada DTO tiene solo los campos necesarios para el cliente.
     // Los valores enum se serializan como string (ToString()), no como int.
     public class ComercioDto

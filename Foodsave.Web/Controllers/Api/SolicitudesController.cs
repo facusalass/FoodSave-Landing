@@ -29,18 +29,63 @@ namespace Foodsave.Web.Controllers.Api
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(List<SolicitudDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll()
+        [ProducesResponseType(typeof(RespuestaPaginada<SolicitudDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        // Ejemplo: GET /api/solicitudes?pagina=2&registrosPorPagina=10
+        // [FromQuery] toma ambos valores desde la URL. Si no se envían,
+        // se utilizan la primera página y diez registros por defecto.
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int pagina = 1,
+            [FromQuery] int registrosPorPagina = 10)
         {
-            // Consulta las solicitudes sin modificar la base de datos.
-            var solicitudes = await _context.SolicitudesComercio
+            // Se validan los parámetros para evitar páginas inexistentes,
+            // tamaños negativos o respuestas excesivamente grandes.
+            if (pagina < 1)
+                return BadRequest(ApiError.BadRequest(
+                    "La página debe ser mayor o igual a 1."));
+
+            if (registrosPorPagina is < 1 or > 100)
+                return BadRequest(ApiError.BadRequest(
+                    "Los registros por página deben estar entre 1 y 100."));
+
+            // Fórmula del paginado: (página - 1) * tamaño.
+            // Ejemplo: página 3 de 10 registros omite los primeros 20.
+            var registrosAOmitir = (long)(pagina - 1) * registrosPorPagina;
+            if (registrosAOmitir > int.MaxValue)
+                return BadRequest(ApiError.BadRequest(
+                    "El número de página solicitado es demasiado grande."));
+
+            // La consulta se ordena antes de aplicar Skip y Take para que
+            // los registros permanezcan en una página estable.
+            var consulta = _context.SolicitudesComercio
                 .AsNoTracking()
                 .OrderBy(s => s.Estado != EstadoSolicitud.Pendiente)
-                .ThenByDescending(s => s.FechaSolicitud)
-                .ToListAsync();
+                .ThenByDescending(s => s.FechaSolicitud);
 
-            // 200 OK: devuelve al cliente una lista JSON mediante DTOs.
-            return Ok(solicitudes.Select(s => s.ToDto()));
+            // CountAsync obtiene el total antes de recortar la consulta.
+            // Ese valor permite calcular cuántas páginas existen.
+            var totalRegistros = await consulta.CountAsync(
+                HttpContext.RequestAborted);
+            var totalPaginas = (int)Math.Ceiling(
+                totalRegistros / (double)registrosPorPagina);
+
+            // Skip omite los registros de páginas anteriores y Take limita
+            // la cantidad devuelta en la página actual.
+            var solicitudes = await consulta
+                .Skip((int)registrosAOmitir)
+                .Take(registrosPorPagina)
+                .ToListAsync(HttpContext.RequestAborted);
+
+            // La respuesta incluye los elementos de esta página y metadatos
+            // para que el cliente pueda construir Anterior/Siguiente.
+            return Ok(new RespuestaPaginada<SolicitudDto>
+            {
+                Items = solicitudes.Select(s => s.ToDto()).ToList(),
+                PaginaActual = pagina,
+                RegistrosPorPagina = registrosPorPagina,
+                TotalRegistros = totalRegistros,
+                TotalPaginas = totalPaginas
+            });
         }
 
         [HttpGet("{id:int}")]

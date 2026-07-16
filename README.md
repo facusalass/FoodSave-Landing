@@ -214,7 +214,7 @@ Todos los enums usan HasConversion<string>() para almacenarse como texto legible
 | POST | /api/comercios | Sí |
 | PATCH | /api/comercios/{id}/estado | Sí |
 | GET | /api/comercios/{id}/pagos | Sí |
-| GET | /api/solicitudes | Sí |
+| GET | /api/solicitudes?pagina=1&registrosPorPagina=10 | Sí |
 | GET | /api/solicitudes/{id} | Sí |
 | POST | /api/solicitudes | No |
 | PATCH | /api/solicitudes/{id} | Sí |
