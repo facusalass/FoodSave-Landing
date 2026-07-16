@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Foodsave.Web.Controllers.Api
 {
+    // Controlador REST para registrar pagos de suscripciones.
     [Authorize]
     [ApiController]
+    // Ruta base: POST /api/pagos.
     [Route("api/pagos")]
+    // La comunicación con el cliente usa JSON.
     [Produces("application/json")]
     [IgnoreAntiforgeryToken]
     public class PagosController : ControllerBase
@@ -31,6 +34,7 @@ namespace Foodsave.Web.Controllers.Api
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Register([FromBody] RegistrarPagoInputModel model)
         {
+            // POST recibe los datos del pago enviados en el cuerpo JSON.
             if (!ModelState.IsValid)
                 return BadRequest(ApiError.Validation(ModelState));
 
@@ -43,6 +47,7 @@ namespace Foodsave.Web.Controllers.Api
                     model.ComercioId, model.SuscripcionId);
 
             if (comercio is null || suscripcion is null)
+                // 404 si el comercio o la suscripción no existen.
                 return NotFound(ApiError.NotFound(
                     "Comercio o suscripción no encontrados."));
 
@@ -60,6 +65,7 @@ namespace Foodsave.Web.Controllers.Api
                 "API: Pago registrado ComercioId={Id} Monto={Monto}",
                 model.ComercioId, model.Monto);
 
+            // 201 Created confirma el pago y devuelve su información relevante.
             return Created(string.Empty, new
             {
                 message = "Pago registrado y suscripción actualizada.",
