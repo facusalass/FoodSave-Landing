@@ -23,7 +23,7 @@ namespace Foodsave.Web
                 .AddFoodSaveSwagger()
                 .AddFoodSaveHealthChecks()
                 .AddFoodSaveServices()
-                .AddFoodSaveAuth()
+                .AddFoodSaveAuth(builder.Configuration)
                 .AddFoodSaveRateLimiting();
 
             if (TryConfigurePostgreSql(builder))

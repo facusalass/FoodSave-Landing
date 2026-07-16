@@ -41,7 +41,12 @@ namespace Foodsave.Web.Controllers
 
             var email = model.Email.Trim().ToLowerInvariant();
 
-            if (!_authService.ValidarCredenciales(email, model.Password))
+            var session = await _authService.AutenticarAsync(
+                email,
+                model.Password,
+                HttpContext.RequestAborted);
+
+            if (session is null)
             {
                 _logger.LogWarning("Intento de login fallido para {Email}", email);
                 ModelState.AddModelError(
@@ -51,7 +56,7 @@ namespace Foodsave.Web.Controllers
             }
 
             _logger.LogInformation("Login exitoso para {Email}", email);
-            await _authService.IniciarSesionAsync(HttpContext);
+            await _authService.IniciarSesionAsync(HttpContext, session);
 
             if (!string.IsNullOrWhiteSpace(model.ReturnUrl) &&
                 Url.IsLocalUrl(model.ReturnUrl))
