@@ -9,6 +9,7 @@ namespace Foodsave.Web.Models
         public string Rubro { get; set; } = string.Empty;
         public string Direccion { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
+        public PlanSuscripcion Plan { get; set; } = PlanSuscripcion.Estandar;
         public EstadoAdministrativo EstadoAdministrativo { get; set; } = EstadoAdministrativo.Activo;
 
         [MaxLength(100)]

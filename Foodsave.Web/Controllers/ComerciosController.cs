@@ -137,6 +137,7 @@ namespace Foodsave.Web.Controllers
             }
 
             var hoy = DateTime.Today;
+            comercio.Plan = Enum.Parse<PlanSuscripcion>(plan!);
             comercio.EstadoAdministrativo = EstadoAdministrativo.PendientePago;
             comercio.Suscripciones =
             [

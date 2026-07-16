@@ -49,6 +49,11 @@ namespace Foodsave.Web.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
+                    b.Property<string>("Plan")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<string>("Rubro")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -68,6 +73,8 @@ namespace Foodsave.Web.Migrations
 
                     b.HasIndex("Nombre")
                         .IsUnique();
+
+                    b.HasIndex("Plan");
 
                     b.HasIndex("Rubro");
 

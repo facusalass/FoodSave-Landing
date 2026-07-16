@@ -1,5 +1,6 @@
 using Foodsave.Web.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Foodsave.Web.Data
 {
@@ -14,6 +15,7 @@ namespace Foodsave.Web.Data
             else
             {
                 context.Database.EnsureCreated();
+                EnsureSqlitePlanColumn(context);
             }
 
             var comercios = new List<Comercio>
@@ -117,6 +119,10 @@ namespace Foodsave.Web.Data
 
             foreach (var comercio in comercios)
             {
+                comercio.Plan = comercio.Suscripciones
+                    .OrderByDescending(s => s.FechaInicio)
+                    .Select(s => s.Plan)
+                    .FirstOrDefault();
                 comercio.EstadoAdministrativo = EstadoAdministrativo.Activo;
 
                 foreach (var suscripcion in comercio.Suscripciones)
@@ -365,6 +371,69 @@ namespace Foodsave.Web.Data
 
             context.SolicitudesComercio.AddRange(solicitudes);
             context.SaveChanges();
+        }
+
+        private static void EnsureSqlitePlanColumn(ApplicationDbContext context)
+        {
+            var connection = context.Database.GetDbConnection();
+            var closeConnection = connection.State != ConnectionState.Open;
+
+            if (closeConnection)
+                connection.Open();
+
+            try
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "PRAGMA table_info('Comercios');";
+
+                var hasPlan = false;
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        if (string.Equals(
+                                reader.GetString(1),
+                                "Plan",
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            hasPlan = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasPlan)
+                    return;
+
+                context.Database.ExecuteSqlRaw(
+                    """
+                    ALTER TABLE "Comercios"
+                    ADD COLUMN "Plan" TEXT NOT NULL DEFAULT 'Estandar';
+                    """);
+
+                context.Database.ExecuteSqlRaw(
+                    """
+                    UPDATE "Comercios" AS c
+                    SET "Plan" = COALESCE(
+                        (
+                            SELECT s."Plan"
+                            FROM "Suscripciones" AS s
+                            WHERE s."ComercioId" = c."Id"
+                            ORDER BY
+                                CASE WHEN s."Estado" = 'Activa' THEN 0 ELSE 1 END,
+                                s."FechaInicio" DESC,
+                                s."Id" DESC
+                            LIMIT 1
+                        ),
+                        'Estandar'
+                    );
+                    """);
+            }
+            finally
+            {
+                if (closeConnection)
+                    connection.Close();
+            }
         }
     }
 }

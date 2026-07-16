@@ -74,14 +74,24 @@ namespace Foodsave.Web.Controllers
                 return await SuscripcionView(id);
 
             var suscripcion = await _context.Suscripciones
+                .Include(s => s.Comercio!)
+                    .ThenInclude(c => c.Suscripciones)
                 .FirstOrDefaultAsync(s => s.Id == model.SuscripcionId && s.ComercioId == id);
 
             if (suscripcion is null)
                 return NotFound();
 
-            suscripcion.Plan = Enum.Parse<PlanSuscripcion>(plan!);
+            var planSeleccionado = Enum.Parse<PlanSuscripcion>(plan!);
+            suscripcion.Plan = planSeleccionado;
             suscripcion.MontoMensual = model.MontoMensual;
             suscripcion.FechaProximoVencimiento = model.FechaProximoVencimiento.Date;
+
+            var suscripcionActual = _gestionSuscripciones.ObtenerSuscripcionActual(
+                suscripcion.Comercio!.Suscripciones,
+                DateTime.Today);
+            if (suscripcionActual?.Id == suscripcion.Id)
+                suscripcion.Comercio.Plan = planSeleccionado;
+
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Suscripción editada: Id={SusId}, Plan={Plan}", suscripcion.Id, plan);
@@ -94,6 +104,8 @@ namespace Foodsave.Web.Controllers
         public async Task<IActionResult> CancelarSuscripcion(int id, int suscripcionId)
         {
             var suscripcion = await _context.Suscripciones
+                .Include(s => s.Comercio!)
+                    .ThenInclude(c => c.Suscripciones)
                 .FirstOrDefaultAsync(s => s.Id == suscripcionId && s.ComercioId == id);
 
             if (suscripcion is null)
@@ -104,6 +116,13 @@ namespace Foodsave.Web.Controllers
             suscripcion.FechaFin = hoy;
             if (suscripcion.FechaInicio > hoy)
                 suscripcion.FechaInicio = hoy;
+
+            var suscripcionActual = _gestionSuscripciones.ObtenerSuscripcionActual(
+                suscripcion.Comercio!.Suscripciones,
+                hoy);
+            if (suscripcionActual is not null)
+                suscripcion.Comercio.Plan = suscripcionActual.Plan;
+
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Suscripción cancelada: Id={SusId}", suscripcionId);
@@ -134,10 +153,11 @@ namespace Foodsave.Web.Controllers
             if (comercio is null)
                 return NotFound();
 
+            var planSeleccionado = Enum.Parse<PlanSuscripcion>(plan!);
             _context.Suscripciones.Add(new Suscripcion
             {
                 ComercioId = id,
-                Plan = Enum.Parse<PlanSuscripcion>(plan!),
+                Plan = planSeleccionado,
                 Estado = EstadoSuscripcion.Activa,
                 FechaInicio = model.FechaInicio,
                 MontoMensual = model.MontoMensual,
@@ -145,6 +165,7 @@ namespace Foodsave.Web.Controllers
                 EstadoPago = EstadoPagoSuscripcion.Pendiente
             });
 
+            comercio.Plan = planSeleccionado;
             if (comercio.EstadoAdministrativo == EstadoAdministrativo.Activo)
                 comercio.EstadoAdministrativo = EstadoAdministrativo.PendientePago;
 

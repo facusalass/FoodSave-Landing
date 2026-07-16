@@ -74,7 +74,7 @@
                                         @item.Comercio.EstadoAdministrativo
                                     </span>
                                 </td>
-                                <td>@(item.SuscripcionActual?.Plan.ToString() ?? "Sin plan")</td>
+                                <td>@item.Comercio.Plan</td>
                                 <td>
                                     <span class="status-badge @pagoStatusClass">
                                         @item.EstadoPagoEfectivo

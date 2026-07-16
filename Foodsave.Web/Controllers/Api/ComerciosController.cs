@@ -85,6 +85,7 @@ namespace Foodsave.Web.Controllers.Api
                 Rubro = model.Rubro.Trim(),
                 Direccion = TextHelper.NormalizarOpcional(model.Direccion) ?? "",
                 Telefono = model.TelefonoComercio.Trim(),
+                Plan = PlanSuscripcion.Estandar,
                 EstadoAdministrativo = EstadoAdministrativo.PendientePago,
                 Titular = new Titular
                 {

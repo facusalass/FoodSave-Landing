@@ -13,6 +13,10 @@ namespace Foodsave.Web.Data.Configurations
             builder.Property(c => c.Direccion).HasMaxLength(200);
             builder.Property(c => c.Telefono).HasMaxLength(40);
 
+            builder.Property(c => c.Plan)
+                .HasMaxLength(20)
+                .HasConversion<string>();
+
             builder.Property(c => c.EstadoAdministrativo)
                 .HasMaxLength(20)
                 .HasConversion<string>();
@@ -23,6 +27,7 @@ namespace Foodsave.Web.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(c => c.EstadoAdministrativo);
+            builder.HasIndex(c => c.Plan);
             builder.HasIndex(c => c.Nombre).IsUnique();
             builder.HasIndex(c => c.Rubro);
         }

@@ -11,6 +11,7 @@ namespace Foodsave.Web.Models
         public string Rubro { get; set; } = string.Empty;
         public string Direccion { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
+        public string Plan { get; set; } = string.Empty;
         public string EstadoAdministrativo { get; set; } = string.Empty;
         public string? FoodSaveBusinessId { get; set; }
 
@@ -87,6 +88,7 @@ namespace Foodsave.Web.Models
                 Rubro = comercio.Rubro,
                 Direccion = comercio.Direccion,
                 Telefono = comercio.Telefono,
+                Plan = comercio.Plan.ToString(),
                 EstadoAdministrativo = comercio.EstadoAdministrativo.ToString(),
                 FoodSaveBusinessId = comercio.FoodSaveBusinessId,
                 Titular = new TitularDto

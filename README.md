@@ -140,6 +140,7 @@ Todos los enums usan HasConversion<string>() para almacenarse como texto legible
 | Titulares | Email | UNIQUE |
 | Comercios | Nombre | UNIQUE |
 | Comercios | EstadoAdministrativo | Normal |
+| Comercios | Plan | Normal |
 | Comercios | Rubro | Normal |
 | Suscripciones | Estado | Normal |
 | Suscripciones | EstadoPago | Normal |
