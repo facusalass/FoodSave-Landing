@@ -26,10 +26,10 @@ La aplicación se integra con el backend principal de FoodSave (Node.js + Supaba
 | Framework | ASP.NET Core MVC (.NET 10) |
 | Lenguaje | C# |
 | ORM | Entity Framework Core (Code-First) |
-| BD producción | PostgreSQL (Railway) |
+| BD producción | PostgreSQL (Supabase) |
 | BD desarrollo | SQLite |
 | Frontend | Razor (.cshtml) + Bootstrap 5 + CSS personalizado |
-| Autenticación | ASP.NET Core Cookie Authentication |
+| Autenticación | Supabase Auth + cookies MVC + JWT Bearer para API |
 | API REST | ASP.NET Core API Controllers + Swagger/OpenAPI |
 | Integración externa | HttpClient + FoodSave API (Node.js) |
 | Despliegue | Azure App Service + GitHub Actions |
@@ -220,6 +220,17 @@ Todos los enums usan HasConversion<string>() para almacenarse como texto legible
 | POST | /api/pagos | Sí |
 | GET | /api/estadisticas | Sí |
 
+`POST /api/auth/login` valida las credenciales en Supabase Auth y devuelve un
+`accessToken` JWT. Los demás endpoints `/api/*` requieren enviarlo mediante:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+ASP.NET Core valida firma, emisor, audiencia y vencimiento utilizando el JWKS
+público del proyecto de Supabase. Las vistas MVC autentican contra el mismo
+proveedor y guardan la sesión resultante en una cookie `HttpOnly` cifrada.
+
 ### 5.3 Documentación Swagger
 
 Disponible en desarrollo: https://localhost:7206/swagger
@@ -262,7 +273,9 @@ Disponible en desarrollo: https://localhost:7206/swagger
 | Rate Limiting | Login: 5 intentos / 15 min. Formulario público: 5 / 10 min |
 | HSTS | Habilitado en producción |
 | HTTPS | Redirección automática |
-| Cookie security | HttpOnly=true, SameSite=Lax, SecurePolicy=SameAsRequest, 8h sliding |
+| Identidad | Usuarios y contraseñas administrados por Supabase Auth |
+| API tokens | JWT Bearer firmado por Supabase; validación mediante JWKS |
+| Cookie security | HttpOnly=true, SameSite=Lax, SecurePolicy=SameAsRequest, duración alineada al JWT |
 | SQL Injection | EF Core parametrized queries |
 | XSS | Auto-encode + CSP |
 | Input validation | Data Annotations en todos los InputModels |
@@ -297,22 +310,39 @@ Se llama automáticamente al inhabilitar/reactivar.
 
 ## 8. Despliegue
 
-### Producción (Azure + Railway PostgreSQL)
+### Producción (Azure App Service + Supabase PostgreSQL)
 
-Variables de entorno requeridas en Azure Portal:
+La aplicación se ejecuta en Azure App Service y utiliza PostgreSQL administrado
+por Supabase. La conexión se realiza mediante Supavisor en modo Session Pooler,
+adecuado para un backend ASP.NET persistente.
+
+Variables de entorno requeridas en Azure Portal (`App Service > Settings >
+Environment variables`):
 
 ```
-DATABASE_URL=postgresql://usuario:password@host:5432/foodsave?sslmode=require
+ConnectionStrings__DefaultConnection=Host=aws-1-us-west-2.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.<project-ref>;Password=<database-password>;SSL Mode=Require;Timeout=15;Command Timeout=60
 ASPNETCORE_ENVIRONMENT=Production
-DemoAuth__Email=admin@foodsave.com
-DemoAuth__Password=passwordSeguro
+Supabase__Url=https://<project-ref>.supabase.co
+Supabase__PublishableKey=<publishable-key>
 FoodSaveApi__BaseUrl=https://foodsave-unti.onrender.com
-FoodSaveApi__ApiKey=FsXk9mP2vL7nQ4wR8yT1bD6cJ3aH5gE0
+FoodSaveApi__ApiKey=<api-key>
 ```
 
-1. GitHub Actions: Build Release + deploy a Azure Web App Foodsave
-2. Base de datos: PostgreSQL en Railway (DATABASE_URL)
-3. Migraciones: se aplican automáticamente al iniciar
+Si el despliegue utiliza el `Dockerfile`, también se configuran:
+
+```
+WEBSITES_PORT=8080
+ASPNETCORE_URLS=http://+:8080
+```
+
+1. GitHub Actions compila en Release y despliega en Azure App Service.
+2. Azure se conecta a Supabase PostgreSQL mediante
+   `ConnectionStrings__DefaultConnection`.
+3. Las migraciones de Entity Framework Core se aplican automáticamente al
+   iniciar la aplicación.
+4. Las tablas del esquema `public` tienen Row Level Security (RLS) habilitado
+   sin políticas públicas. El backend accede mediante la conexión PostgreSQL.
+5. El estado de la aplicación y la base se verifica en `/health`.
 
 ### Desarrollo local
 
@@ -343,16 +373,22 @@ dotnet run --launch-profile https
 
 ---
 
-## 10. Credenciales de acceso
+## 10. Usuarios y credenciales de acceso
 
-Las credenciales no están visibles en el código ni en la interfaz.
-Se configuran mediante:
+Los usuarios se administran en `Supabase Dashboard > Authentication > Users`.
+Las contraseñas no se almacenan en la aplicación ni en las tablas públicas:
+Supabase Auth las procesa y almacena de forma segura.
+
+La aplicación sólo necesita la URL y la publishable key del proyecto:
 
 | Entorno | Ubicación |
 |---------|-----------|
-| Desarrollo local | launchSettings.json (variables de entorno) |
-| Producción Azure | Azure Portal > App Service > Environment Variables |
-| .env local | Archivo .env (no versionado, en .gitignore) |
+| Desarrollo local | `dotnet user-secrets` (`Supabase:PublishableKey`) |
+| Producción Azure | App Service > Environment Variables (`Supabase__PublishableKey`) |
+
+La publishable key permite iniciar el flujo público de autenticación, pero no
+otorga permisos administrativos. Las claves `service_role`, `secret` y los
+tokens personales de Supabase no deben configurarse en la aplicación.
 
 ---
 

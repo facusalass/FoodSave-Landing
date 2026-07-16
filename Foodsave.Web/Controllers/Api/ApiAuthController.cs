@@ -1,5 +1,6 @@
 using Foodsave.Web.Models;
 using Foodsave.Web.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -7,11 +8,10 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace Foodsave.Web.Controllers.Api
 {
     // Controlador REST para autenticar administradores de la plataforma.
-    // El login devuelve una cookie de sesión lo mismo que la parte MVC.
+    // Ahora con JWT: el login devuelve un access token en vez de cookie.
     [ApiController]
     [Route("api/auth")]
     [Produces("application/json")]
-    // Sin antiforgery porque la API se consume con JSON, no con formularios HTML.
     [IgnoreAntiforgeryToken]
     public class ApiAuthController : ControllerBase
     {
@@ -33,36 +33,48 @@ namespace Foodsave.Web.Controllers.Api
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginViewModel model)
         {
-            // Recibe JSON con email y password. La cookie la setea HttpContext.SignInAsync().
+            // Recibe JSON con email y password. AutenticarAsync valida contra BD y genera el JWT.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var email = model.Email.Trim().ToLowerInvariant();
+            var session = await _authService.AutenticarAsync(
+                email,
+                model.Password,
+                HttpContext.RequestAborted);
 
-            if (!_authService.ValidarCredenciales(email, model.Password))
+            if (session is null)
             {
-                _logger.LogWarning("API: Intento de login fallido para {Email}", email);
+                _logger.LogWarning(
+                    "API: Intento de login fallido para {Email}",
+                    email);
                 return Unauthorized(new { error = "Credenciales inválidas." });
             }
 
             _logger.LogInformation("API: Login exitoso para {Email}", email);
-            await _authService.IniciarSesionAsync(HttpContext);
 
             return Ok(new
             {
                 message = "Inicio de sesión exitoso.",
                 usuario = email,
-                rol = "Administrador"
+                accessToken = session.AccessToken,
+                refreshToken = session.RefreshToken,
+                tokenType = session.TokenType,
+                expiresIn = session.ExpiresIn
             });
         }
 
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("logout")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Logout()
         {
-            // Cierra la sesión del usuario autenticado.
-            await _authService.CerrarSesionAsync(HttpContext);
+            var authorization = Request.Headers.Authorization.ToString();
+            var accessToken = authorization["Bearer ".Length..].Trim();
+            await _authService.CerrarSesionTokenAsync(
+                accessToken,
+                HttpContext.RequestAborted);
+
             return Ok(new { message = "Sesión cerrada." });
         }
     }

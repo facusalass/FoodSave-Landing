@@ -1,9 +1,12 @@
 using System.Threading.RateLimiting;
 using Foodsave.Web.Infrastructure;
 using Foodsave.Web.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Foodsave.Web
 {
@@ -49,6 +52,7 @@ namespace Foodsave.Web
             services.AddScoped<GestionSuscripcionesService>();
             services.AddScoped<EstadisticasService>();
             services.AddScoped<RegistroPagoService>();
+            services.AddHttpClient<SupabaseAuthClient>();
 
             services.AddHttpClient<FoodSaveApiClient>((sp, client) =>
             {
@@ -63,20 +67,55 @@ namespace Foodsave.Web
         }
 
         public static IServiceCollection AddFoodSaveAuth(
-            this IServiceCollection services)
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
+            const string smartScheme = "FoodSave";
+            var supabaseUrl = configuration["Supabase:Url"]
+                ?? throw new InvalidOperationException(
+                    "Supabase:Url no está configurado.");
+
             services
-                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddAuthentication(options =>
+                {
+                    options.DefaultScheme = smartScheme;
+                    options.DefaultAuthenticateScheme = smartScheme;
+                    options.DefaultChallengeScheme = smartScheme;
+                })
+                .AddPolicyScheme(smartScheme, smartScheme, options =>
+                {
+                    options.ForwardDefaultSelector = context =>
+                        context.Request.Path.StartsWithSegments("/api")
+                            ? JwtBearerDefaults.AuthenticationScheme
+                            : CookieAuthenticationDefaults.AuthenticationScheme;
+                })
                 .AddCookie(options =>
                 {
                     options.LoginPath = "/Auth/Login";
                     options.AccessDeniedPath = "/Auth/Login";
                     options.Cookie.Name = "FoodSave.Auth";
-                    options.ExpireTimeSpan = TimeSpan.FromHours(8);
-                    options.SlidingExpiration = true;
+                    options.ExpireTimeSpan = TimeSpan.FromHours(1);
+                    options.SlidingExpiration = false;
                     options.Cookie.HttpOnly = true;
                     options.Cookie.SameSite = SameSiteMode.Lax;
                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = supabaseUrl.TrimEnd('/') + "/auth/v1";
+                    options.Audience = "authenticated";
+                    options.RequireHttpsMetadata = true;
+                    options.MapInboundClaims = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidateLifetime = true,
+                        NameClaimType = "email",
+                        RoleClaimType = "role",
+                        ClockSkew = TimeSpan.FromMinutes(1)
+                    };
                 });
 
             return services;

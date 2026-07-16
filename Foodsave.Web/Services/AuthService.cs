@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Foodsave.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -6,31 +7,40 @@ namespace Foodsave.Web.Services
 {
     public class AuthService
     {
-        private readonly string _demoEmail;
-        private readonly string _demoPassword;
+        private readonly SupabaseAuthClient _supabaseAuth;
 
-        public AuthService(IConfiguration configuration)
+        public AuthService(SupabaseAuthClient supabaseAuth)
         {
-            _demoEmail = configuration["DemoAuth:Email"]
-                ?? throw new InvalidOperationException(
-                    "DemoAuth:Email no está configurado.");
-            _demoPassword = configuration["DemoAuth:Password"]
-                ?? throw new InvalidOperationException(
-                    "DemoAuth:Password no está configurado.");
+            _supabaseAuth = supabaseAuth;
         }
 
-        public bool ValidarCredenciales(string email, string password)
+        public Task<SupabaseSession?> AutenticarAsync(
+            string email,
+            string password,
+            CancellationToken cancellationToken = default)
         {
-            return email == _demoEmail && password == _demoPassword;
+            return _supabaseAuth.SignInAsync(
+                email,
+                password,
+                cancellationToken);
         }
 
-        public ClaimsPrincipal CrearPrincipal()
+        public ClaimsPrincipal CrearPrincipal(SupabaseSession session)
         {
+            var user = session.User;
+            var name = user.GetMetadataString(user.UserMetadata, "name");
+            var role = user.GetMetadataString(user.AppMetadata, "role");
+
             var claims = new List<Claim>
             {
-                new(ClaimTypes.Name, "Comercio FoodSave"),
-                new(ClaimTypes.Email, _demoEmail),
-                new(ClaimTypes.Role, "Administrador")
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, string.IsNullOrWhiteSpace(name)
+                    ? user.Email
+                    : name),
+                new(ClaimTypes.Email, user.Email),
+                new(ClaimTypes.Role, string.IsNullOrWhiteSpace(role)
+                    ? "Usuario"
+                    : role)
             };
 
             var identity = new ClaimsIdentity(
@@ -40,22 +50,54 @@ namespace Foodsave.Web.Services
             return new ClaimsPrincipal(identity);
         }
 
-        public async Task IniciarSesionAsync(HttpContext httpContext)
+        public async Task IniciarSesionAsync(
+            HttpContext httpContext,
+            SupabaseSession session)
         {
+            var properties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(session.ExpiresIn)
+            };
+            properties.StoreTokens(
+            [
+                new AuthenticationToken
+                {
+                    Name = "access_token",
+                    Value = session.AccessToken
+                },
+                new AuthenticationToken
+                {
+                    Name = "refresh_token",
+                    Value = session.RefreshToken
+                }
+            ]);
+
             await httpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
-                CrearPrincipal(),
-                new AuthenticationProperties
-                {
-                    IsPersistent = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
-                });
+                CrearPrincipal(session),
+                properties);
         }
 
         public async Task CerrarSesionAsync(HttpContext httpContext)
         {
+            var accessToken = await httpContext.GetTokenAsync("access_token");
+            if (!string.IsNullOrWhiteSpace(accessToken))
+            {
+                await _supabaseAuth.SignOutAsync(
+                    accessToken,
+                    httpContext.RequestAborted);
+            }
+
             await httpContext.SignOutAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+
+        public Task CerrarSesionTokenAsync(
+            string accessToken,
+            CancellationToken cancellationToken = default)
+        {
+            return _supabaseAuth.SignOutAsync(accessToken, cancellationToken);
         }
     }
 }
