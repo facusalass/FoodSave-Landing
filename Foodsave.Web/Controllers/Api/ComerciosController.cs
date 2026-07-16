@@ -8,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Foodsave.Web.Controllers.Api
 {
-    // Controlador REST para consultar y administrar comercios.
+    // Endpoints CRUD de comercios.
+    // Todos requieren autenticación ([Authorize]) salvo que se indique lo contrario.
     [Authorize]
     [ApiController]
-    // Ruta base: /api/comercios.
+    // [ApiController] activa validación automática del modelo y绑定 de rutas.
     [Route("api/comercios")]
-    // Las respuestas se entregan como JSON.
     [Produces("application/json")]
     [IgnoreAntiforgeryToken]
     public class ApiComerciosController : ControllerBase
@@ -36,7 +36,7 @@ namespace Foodsave.Web.Controllers.Api
         [ProducesResponseType(typeof(List<ComercioDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
-            // GET consulta todos los comercios sin modificar la base de datos.
+            // AsNoTracking() = solo lectura, no rastrea cambios en memoria.
             var comercios = await _context.Comercios
                 .AsNoTracking()
                 .Include(c => c.Titular)
@@ -44,7 +44,7 @@ namespace Foodsave.Web.Controllers.Api
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
 
-            // 200 OK con la lista de comercios en formato DTO/JSON.
+            // ToDto() convierte entidades en objetos planos para no exponer la BD.
             return Ok(comercios.Select(c => c.ToDto()));
         }
 
@@ -53,7 +53,7 @@ namespace Foodsave.Web.Controllers.Api
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(int id)
         {
-            // El id llega en la URL: GET /api/comercios/{id}.
+            // AsSplitQuery() evita joins gigantes cuando hay varios Includes.
             var comercio = await _context.Comercios
                 .AsNoTracking()
                 .AsSplitQuery()
@@ -64,7 +64,6 @@ namespace Foodsave.Web.Controllers.Api
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (comercio is null)
-                // 404 cuando no existe el recurso solicitado.
                 return NotFound(ApiError.NotFound("Comercio no encontrado."));
 
             return Ok(comercio.ToDto());
@@ -127,7 +126,7 @@ namespace Foodsave.Web.Controllers.Api
             int id,
             [FromBody] UpdateEstadoInput model)
         {
-            // PATCH modifica solo el estado, no todos los datos del comercio.
+            // PATCH = actualización parcial, solo cambia el estado.
             if (!Enum.TryParse<EstadoAdministrativo>(model.Estado, out var estado))
                 return BadRequest(ApiError.BadRequest(
                     "Estado inválido. Usar: Activo, Inhabilitado, PendientePago."));

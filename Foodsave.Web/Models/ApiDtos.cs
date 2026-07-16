@@ -1,5 +1,9 @@
+// DTOs = objetos planos para la API.
+// No exponen las entidades de EF Core ni navegan propiedades de BD.
 namespace Foodsave.Web.Models
 {
+    // Cada DTO tiene solo los campos necesarios para el cliente.
+    // Los valores enum se serializan como string (ToString()), no como int.
     public class ComercioDto
     {
         public int Id { get; set; }
@@ -65,10 +69,13 @@ namespace Foodsave.Web.Models
         public string? Plan { get; set; }
     }
 
+    // Métodos de extensión para mapear entidades → DTOs.
+    // Se llaman desde los controladores: comercio.ToDto()
     public static class DtoMapper
     {
         public static ComercioDto ToDto(this Comercio comercio)
         {
+            // Si se olvida el Include(), explota con un mensaje claro en lugar de NullReference.
             if (comercio.Titular is null)
                 throw new InvalidOperationException(
                     $"Titular no cargado para Comercio {comercio.Id}. Usar .Include(c => c.Titular).");

@@ -8,12 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Foodsave.Web.Controllers.Api
 {
-    // Controlador REST para administrar las solicitudes enviadas por comercios.
+    // CRUD de solicitudes de comercios.
+    // El POST para crear solicitudes es público ([AllowAnonymous]), el resto requiere auth.
     [Authorize]
     [ApiController]
-    // Todas sus acciones comienzan con /api/solicitudes.
     [Route("api/solicitudes")]
-    // La API responde datos en formato JSON, no vistas HTML.
     [Produces("application/json")]
     [IgnoreAntiforgeryToken]
     public class SolicitudesController : ControllerBase
@@ -62,6 +61,7 @@ namespace Foodsave.Web.Controllers.Api
             return Ok(solicitud.ToDto());
         }
 
+        // Endpoint público: cualquiera puede enviar una solicitud sin estar logueado.
         [AllowAnonymous]
         [HttpPost]
         [EnableRateLimiting("SolicitudForm")]
@@ -69,19 +69,17 @@ namespace Foodsave.Web.Controllers.Api
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] SolicitudComercioInputModel model)
         {
-            // [FromBody] convierte el JSON recibido en un modelo de C#.
+            // [FromBody] convierte el JSON recibido directo a un objeto C#.
             if (!ModelState.IsValid)
-                // 400 cuando faltan datos o no cumplen las validaciones.
                 return BadRequest(ApiError.Validation(ModelState));
 
-            // Se transforma el modelo de entrada en entidad y se guarda en la BD.
+            // ToEntity() mapea el input model a la entidad de BD.
             var solicitud = model.ToEntity();
             _context.SolicitudesComercio.Add(solicitud);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("API: Solicitud recibida {Nombre}", solicitud.NombreComercio);
 
-            // 201 Created: informa que se creó el recurso y dónde consultarlo.
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = solicitud.Id },

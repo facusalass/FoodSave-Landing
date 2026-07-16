@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
+// Filtro global que captura excepciones no controladas en endpoints /api/*.
+// Sin esto, una excepción no manejada devolvería HTML o un error 500 genérico.
 namespace Foodsave.Web.Infrastructure
 {
     public class ApiExceptionFilter : IExceptionFilter
@@ -18,6 +20,7 @@ namespace Foodsave.Web.Infrastructure
 
         public void OnException(ExceptionContext context)
         {
+            // Solo aplica a rutas de API, no a las MVC.
             if (!context.HttpContext.Request.Path.StartsWithSegments("/api"))
                 return;
 
@@ -30,6 +33,7 @@ namespace Foodsave.Web.Infrastructure
             {
                 Status = StatusCodes.Status500InternalServerError,
                 Title = "Error interno del servidor.",
+                // En desarrollo muestra el detalle de la excepción; en producción no.
                 Detail = _env.IsDevelopment() ? context.Exception.ToString() : null,
                 Instance = context.HttpContext.Request.Path
             };

@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace Foodsave.Web.Controllers.Api
 {
     // Controlador REST para autenticar administradores de la plataforma.
+    // El login devuelve una cookie de sesión lo mismo que la parte MVC.
     [ApiController]
-    // Ruta base: /api/auth.
     [Route("api/auth")]
-    // Las respuestas del login y logout son JSON.
     [Produces("application/json")]
+    // Sin antiforgery porque la API se consume con JSON, no con formularios HTML.
     [IgnoreAntiforgeryToken]
     public class ApiAuthController : ControllerBase
     {
@@ -33,7 +33,7 @@ namespace Foodsave.Web.Controllers.Api
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginViewModel model)
         {
-            // POST /api/auth/login recibe las credenciales como JSON.
+            // Recibe JSON con email y password. La cookie la setea HttpContext.SignInAsync().
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
@@ -41,7 +41,6 @@ namespace Foodsave.Web.Controllers.Api
 
             if (!_authService.ValidarCredenciales(email, model.Password))
             {
-                // 401 cuando las credenciales no son válidas.
                 _logger.LogWarning("API: Intento de login fallido para {Email}", email);
                 return Unauthorized(new { error = "Credenciales inválidas." });
             }
@@ -49,7 +48,6 @@ namespace Foodsave.Web.Controllers.Api
             _logger.LogInformation("API: Login exitoso para {Email}", email);
             await _authService.IniciarSesionAsync(HttpContext);
 
-            // 200 OK: se crea la sesión de autenticación y se informa al cliente.
             return Ok(new
             {
                 message = "Inicio de sesión exitoso.",
