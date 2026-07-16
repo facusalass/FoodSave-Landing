@@ -23,16 +23,41 @@ namespace Foodsave.Web.Controllers
             ViewData["ActivePage"] = "Solicitudes";
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pagina = 1)
         {
             ViewData["Breadcrumb"] = new (string, string?, string?)[]
             {
                 ("Solicitudes", null, null)
             };
-            var solicitudes = await _context.SolicitudesComercio
+
+            const int registrosPorPagina = 10;
+            pagina = Math.Max(1, pagina);
+
+            // Se ordena antes de paginar para que cada solicitud permanezca
+            // siempre en una posición estable.
+            var consulta = _context.SolicitudesComercio
+                .AsNoTracking()
                 .OrderBy(s => s.Estado != EstadoSolicitud.Pendiente)
                 .ThenByDescending(s => s.FechaSolicitud)
+                .ThenByDescending(s => s.Id);
+
+            // El total permite calcular cuántos botones de página mostrar.
+            var totalRegistros = await consulta.CountAsync();
+            var totalPaginas = (int)Math.Ceiling(
+                totalRegistros / (double)registrosPorPagina);
+
+            if (totalPaginas > 0)
+                pagina = Math.Min(pagina, totalPaginas);
+
+            // Skip omite las páginas anteriores y Take trae solamente
+            // los registros correspondientes a la página actual.
+            var solicitudes = await consulta
+                .Skip((pagina - 1) * registrosPorPagina)
+                .Take(registrosPorPagina)
                 .ToListAsync();
+
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
 
             return View(solicitudes);
         }

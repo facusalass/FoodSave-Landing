@@ -103,4 +103,41 @@
             </table>
         </div>
     </div>
+
+    @* Los enlaces vuelven al Index indicando la página que debe consultar. *@
+    @if (ViewBag.TotalPaginas > 1)
+    {
+        <nav class="mt-3" aria-label="Paginación de solicitudes">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item @(ViewBag.PaginaActual == 1 ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-pagina="@(ViewBag.PaginaActual - 1)">
+                        Anterior
+                    </a>
+                </li>
+
+                @for (var numeroPagina = 1;
+                      numeroPagina <= ViewBag.TotalPaginas;
+                      numeroPagina++)
+                {
+                    <li class="page-item @(numeroPagina == ViewBag.PaginaActual ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-pagina="@numeroPagina">
+                            @numeroPagina
+                        </a>
+                    </li>
+                }
+
+                <li class="page-item @(ViewBag.PaginaActual == ViewBag.TotalPaginas ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-pagina="@(ViewBag.PaginaActual + 1)">
+                        Siguiente
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
 </section>
