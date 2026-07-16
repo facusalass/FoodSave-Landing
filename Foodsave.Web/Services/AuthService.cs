@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Foodsave.Web.Services
 {
+    // Servicio que orquesta la autenticación.
+    // Para API usa JWT (Stateless), para MVC usa Cookie (Stateful con tokens guardados).
     public class AuthService
     {
         private readonly SupabaseAuthClient _supabaseAuth;
@@ -14,6 +16,7 @@ namespace Foodsave.Web.Services
             _supabaseAuth = supabaseAuth;
         }
 
+        // API: valida credenciales contra Supabase y devuelve el JWT.
         public Task<SupabaseSession?> AutenticarAsync(
             string email,
             string password,
@@ -25,6 +28,7 @@ namespace Foodsave.Web.Services
                 cancellationToken);
         }
 
+        // Construye el ClaimsPrincipal con los datos del usuario desde la sesión de Supabase.
         public ClaimsPrincipal CrearPrincipal(SupabaseSession session)
         {
             var user = session.User;
@@ -50,6 +54,7 @@ namespace Foodsave.Web.Services
             return new ClaimsPrincipal(identity);
         }
 
+        // MVC: guarda el JWT dentro de la cookie para usarlo al hacer logout.
         public async Task IniciarSesionAsync(
             HttpContext httpContext,
             SupabaseSession session)
@@ -79,6 +84,7 @@ namespace Foodsave.Web.Services
                 properties);
         }
 
+        // MVC logout: saca el token de la cookie, lo revoca en Supabase y borra la cookie.
         public async Task CerrarSesionAsync(HttpContext httpContext)
         {
             var accessToken = await httpContext.GetTokenAsync("access_token");
@@ -93,6 +99,7 @@ namespace Foodsave.Web.Services
                 CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
+        // API logout: recibe el token del header y lo revoca en Supabase.
         public Task CerrarSesionTokenAsync(
             string accessToken,
             CancellationToken cancellationToken = default)

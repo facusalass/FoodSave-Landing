@@ -5,6 +5,8 @@ using Foodsave.Web.Models;
 
 namespace Foodsave.Web.Services
 {
+    // Cliente HTTP que se comunica con Supabase Auth.
+    // No almacena usuarios ni passwords: delega toda la autenticación a Supabase.
     public sealed class SupabaseAuthClient
     {
         private readonly HttpClient _httpClient;
@@ -20,9 +22,11 @@ namespace Foodsave.Web.Services
 
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(url.TrimEnd('/') + "/");
+            // La API key de Supabase se envía en toda request (no es el JWT).
             _httpClient.DefaultRequestHeaders.Add("apikey", publishableKey);
         }
 
+        // POST a Supabase con grant_type=password. Devuelve null si credenciales inválidas.
         public async Task<SupabaseSession?> SignInAsync(
             string email,
             string password,
@@ -33,6 +37,7 @@ namespace Foodsave.Web.Services
                 new { email, password },
                 cancellationToken);
 
+            // 400 = usuario no existe, 401 = password incorrecta.
             if (response.StatusCode is HttpStatusCode.BadRequest or
                 HttpStatusCode.Unauthorized)
             {
@@ -44,6 +49,7 @@ namespace Foodsave.Web.Services
                 cancellationToken: cancellationToken);
         }
 
+        // Revoca el token en Supabase para que no pueda usarse de nuevo.
         public async Task SignOutAsync(
             string accessToken,
             CancellationToken cancellationToken = default)

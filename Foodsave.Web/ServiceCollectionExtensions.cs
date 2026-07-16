@@ -66,6 +66,10 @@ namespace Foodsave.Web
             return services;
         }
 
+        // Configura dos esquemas de autenticación en paralelo:
+        // - Cookie para las rutas MVC (Login web).
+        // - JWT Bearer para las rutas /api/*.
+        // Un PolicyScheme elige automáticamente cuál usar según la ruta.
         public static IServiceCollection AddFoodSaveAuth(
             this IServiceCollection services,
             IConfiguration configuration)
@@ -82,6 +86,7 @@ namespace Foodsave.Web
                     options.DefaultAuthenticateScheme = smartScheme;
                     options.DefaultChallengeScheme = smartScheme;
                 })
+                // PolicyScheme decide: si arranca con /api → JWT, sino → Cookie.
                 .AddPolicyScheme(smartScheme, smartScheme, options =>
                 {
                     options.ForwardDefaultSelector = context =>
@@ -100,21 +105,22 @@ namespace Foodsave.Web
                     options.Cookie.SameSite = SameSiteMode.Lax;
                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 })
+                // JWT configurado para validar contra Supabase Auth.
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = supabaseUrl.TrimEnd('/') + "/auth/v1";
-                    options.Audience = "authenticated";
+                    options.Authority = supabaseUrl.TrimEnd('/') + "/auth/v1";  // Supabase es el issuer.
+                    options.Audience = "authenticated";  // Audience fija de Supabase.
                     options.RequireHttpsMetadata = true;
-                    options.MapInboundClaims = false;
+                    options.MapInboundClaims = false;  // No mapea claims a tipos .NET viejos.
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidateLifetime = true,
-                        NameClaimType = "email",
+                        ValidateIssuer = true,       // Verifica que el token lo emitió Supabase.
+                        ValidateAudience = true,     // Verifica "authenticated".
+                        ValidateIssuerSigningKey = true,  // Verifica la firma criptográfica.
+                        ValidateLifetime = true,      // Rechaza tokens expirados.
+                        NameClaimType = "email",      // User.Identity.Name = email.
                         RoleClaimType = "role",
-                        ClockSkew = TimeSpan.FromMinutes(1)
+                        ClockSkew = TimeSpan.FromMinutes(1)  // Tolerancia de 1 minuto.
                     };
                 });
 

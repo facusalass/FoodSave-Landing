@@ -7,11 +7,13 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace Foodsave.Web.Controllers.Api
 {
-    // Controlador REST para autenticar administradores de la plataforma.
-    // Ahora con JWT: el login devuelve un access token en vez de cookie.
+    // Endpoints de autenticación de la API REST.
+    // El login recibe credenciales, consulta Supabase y devuelve un JWT.
+    // Todas las demás rutas /api/* validan ese JWT automáticamente.
     [ApiController]
     [Route("api/auth")]
     [Produces("application/json")]
+    // API usa JSON, no formularios HTML → no necesita antiforgery token.
     [IgnoreAntiforgeryToken]
     public class ApiAuthController : ControllerBase
     {
@@ -26,6 +28,7 @@ namespace Foodsave.Web.Controllers.Api
             _logger = logger;
         }
 
+        // POST /api/auth/login — público, sin auth.
         [AllowAnonymous]
         [HttpPost("login")]
         [EnableRateLimiting("Login")]
@@ -33,7 +36,7 @@ namespace Foodsave.Web.Controllers.Api
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginViewModel model)
         {
-            // Recibe JSON con email y password. AutenticarAsync valida contra BD y genera el JWT.
+            // Recibe JSON con email y password, pide JWT a Supabase via AuthService.
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
@@ -53,6 +56,8 @@ namespace Foodsave.Web.Controllers.Api
 
             _logger.LogInformation("API: Login exitoso para {Email}", email);
 
+            // Devuelve el JWT y refresh token. El cliente debe mandar el access_token
+            // como "Authorization: Bearer <token>" en los próximos requests.
             return Ok(new
             {
                 message = "Inicio de sesión exitoso.",
@@ -64,6 +69,7 @@ namespace Foodsave.Web.Controllers.Api
             });
         }
 
+        // POST /api/auth/logout — requiere JWT en header. Revoca el token en Supabase.
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("logout")]
         [ProducesResponseType(StatusCodes.Status200OK)]
